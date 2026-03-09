@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+streamlit
+openai
+chromadb
+GitPython
+python-dotenv
+pydantic
+PyYAML
+markdown
+pytest
+httpx
+google-genai
