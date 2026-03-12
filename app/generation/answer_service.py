@@ -1,3 +1,5 @@
+"""End-to-end grounded answer generation service."""
+
 from app.core.tracing import log_trace
 from app.generation.citations import format_citations
 from app.generation.llm_writer import write_grounded_answer
@@ -12,6 +14,7 @@ def answer_question(
     mode: str = "onboarding",
     n_results: int = 5,
 ) -> dict:
+    """Retrieve evidence, apply guardrails, and return an answer payload."""
     retrieved_chunks = retrieve_chunks(
         query=query,
         collection_name=collection_name,

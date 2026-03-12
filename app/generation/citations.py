@@ -1,4 +1,7 @@
+"""Citation formatting helpers."""
+
 def format_citations(retrieved_chunks: list[dict]) -> list[str]:
+    """Format unique chunk citations from retrieved results."""
     citations = []
     seen = set()
 

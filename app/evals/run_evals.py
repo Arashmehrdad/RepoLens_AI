@@ -1,3 +1,5 @@
+"""Run saved evaluation cases and persist a summary report."""
+
 import json
 from pathlib import Path
 
@@ -10,6 +12,7 @@ RESULTS_FILE = Path("data/eval_results.json")
 
 
 def citation_hit(citations: list[str], expected_paths: list[str]) -> bool:
+    """Return True when every expected path appears in the citations list."""
     return all(
         any(expected_path in citation for citation in citations)
         for expected_path in expected_paths

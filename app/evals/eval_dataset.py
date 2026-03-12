@@ -1,3 +1,5 @@
+"""Saved evaluation cases for quick regression checks."""
+
 EVAL_CASES = [
     {
         "name": "run_dev_server",

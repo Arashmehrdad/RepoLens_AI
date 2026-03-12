@@ -1,7 +1,10 @@
+"""Vector indexing helpers."""
+
 from app.retrieval.vector_store import get_vector_collection
 
 
 def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
+    """Upsert chunk content plus rich metadata into the vector store."""
     collection = get_vector_collection(collection_name)
 
     ids = []
@@ -10,23 +13,32 @@ def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> in
 
     for chunk in chunks:
         chunk_id = f"{chunk['path']}::chunk_{chunk['chunk_index']}"
-
         ids.append(chunk_id)
         documents.append(chunk["content"])
         metadatas.append(
             {
                 "path": chunk["path"],
+                "path_lower": chunk["path_lower"],
                 "filename": chunk["filename"],
+                "filename_lower": chunk["filename_lower"],
                 "suffix": chunk["suffix"],
+                "stem": chunk["stem"],
+                "parent_dirs_joined": chunk["parent_dirs_joined"],
+                "depth": chunk["depth"],
                 "chunk_index": chunk["chunk_index"],
+                "is_readme": chunk["is_readme"],
+                "is_config": chunk["is_config"],
+                "is_docker": chunk["is_docker"],
+                "is_compose": chunk["is_compose"],
+                "is_api": chunk["is_api"],
+                "is_app_entry": chunk["is_app_entry"],
+                "is_training": chunk["is_training"],
+                "is_workflow": chunk["is_workflow"],
+                "is_dependency_file": chunk["is_dependency_file"],
             }
         )
 
     if ids:
-        collection.upsert(
-            ids=ids,
-            documents=documents,
-            metadatas=metadatas,
-        )
+        collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
 
     return len(ids)

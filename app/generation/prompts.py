@@ -1,4 +1,7 @@
+"""Prompt construction for different answer modes."""
+
 def build_mode_prompt(mode: str, query: str, evidence_text: str) -> str:
+    """Build the LLM prompt for the selected answer mode."""
     mode = mode.lower().strip()
 
     mode_instructions = {

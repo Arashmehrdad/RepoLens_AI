@@ -1,23 +1,59 @@
-from app.retrieval.retriever import retrieve_chunks
+"""Tests for retrieval distance handling."""
+
+from app.retrieval import retriever
 
 
-def show_results(query: str) -> None:
-    print(f"\nQUERY: {query}\n")
+class FakeCollection:
+    """Collection stub that returns fixed retrieval results."""
 
-    results = retrieve_chunks(
-        query=query,
-        collection_name="repo_flask",
-        n_results=5,
-    )
+    def query(self, query_texts, n_results):
+        """Return canned documents, metadata, and distances."""
+        return {
+            "documents": [["config details", "readme details"]],
+            "metadatas": [[
+                {
+                    "path": "config/settings.yaml",
+                    "path_lower": "config/settings.yaml",
+                    "filename": "settings.yaml",
+                    "filename_lower": "settings.yaml",
+                    "chunk_index": 0,
+                    "is_readme": False,
+                    "is_config": True,
+                    "is_dependency_file": False,
+                    "is_app_entry": False,
+                    "is_api": False,
+                    "is_training": False,
+                    "is_docker": False,
+                    "is_compose": False,
+                    "is_workflow": False,
+                },
+                {
+                    "path": "README.md",
+                    "path_lower": "readme.md",
+                    "filename": "README.md",
+                    "filename_lower": "readme.md",
+                    "chunk_index": 0,
+                    "is_readme": True,
+                    "is_config": False,
+                    "is_dependency_file": False,
+                    "is_app_entry": False,
+                    "is_api": False,
+                    "is_training": False,
+                    "is_docker": False,
+                    "is_compose": False,
+                    "is_workflow": False,
+                },
+            ]],
+            "distances": [[0.25, 0.75]],
+        }
 
-    for i, item in enumerate(results, start=1):
-        print(f"Result {i}")
-        print("Path:", item["metadata"]["path"])
-        print("Distance:", item["distance"])
-        print("Preview:", item["content"][:200].replace("\n", " "))
-        print("-" * 60)
 
+def test_retrieve_chunks_preserves_distance_values(monkeypatch):
+    """Distances from the vector store should remain attached to the right chunk."""
+    monkeypatch.setattr(retriever, "get_vector_collection", lambda name: FakeCollection())
 
-if __name__ == "__main__":
-    show_results("How do I run the Flask development server?")
-    show_results("What is the capital of France?")
+    results = retriever.retrieve_chunks("Where is the config?", n_results=2)
+    distances_by_path = {item["metadata"]["path"]: item["distance"] for item in results}
+
+    assert distances_by_path["config/settings.yaml"] == 0.25
+    assert distances_by_path["README.md"] == 0.75

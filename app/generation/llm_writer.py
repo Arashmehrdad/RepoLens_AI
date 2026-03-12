@@ -1,3 +1,5 @@
+"""LLM-backed answer writing helpers."""
+
 import os
 
 from dotenv import load_dotenv
@@ -15,6 +17,7 @@ def write_grounded_answer(
     retrieved_chunks: list[dict],
     mode: str = "onboarding",
 ) -> str:
+    """Generate an answer grounded in the highest-priority retrieved chunks."""
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
     evidence_blocks = []

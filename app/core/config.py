@@ -1,3 +1,5 @@
+"""Application configuration constants."""
+
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -13,4 +15,22 @@ SUPPORTED_EXTENSIONS = {
     ".yaml",
     ".json",
     ".txt",
+    ".toml",
+    ".ini",
+    ".cfg",
+    ".env",
+    ".sh",
+}
+
+ALWAYS_INCLUDED_FILENAMES = {
+    "dockerfile",
+    "docker-compose.yml",
+    "docker-compose.yaml",
+    "compose.yml",
+    "compose.yaml",
+    "makefile",
+    "requirements.txt",
+    "pyproject.toml",
+    ".env.example",
+    ".env",
 }

@@ -1,8 +1,11 @@
+"""Evidence sufficiency checks for grounded answers."""
+
 def has_enough_evidence(
     retrieved_chunks: list[dict],
     min_chunks: int = 1,
     max_distance: float = 1.5,
 ) -> bool:
+    """Return True when retrieval results meet minimum evidence thresholds."""
     if len(retrieved_chunks) < min_chunks:
         return False
 

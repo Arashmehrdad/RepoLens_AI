@@ -1,3 +1,5 @@
+"""Trace logging utilities."""
+
 import json
 from datetime import datetime, UTC
 
@@ -8,6 +10,7 @@ TRACE_FILE = LOGS_DIR / "traces.jsonl"
 
 
 def log_trace(payload: dict) -> None:
+    """Append a structured trace event to the JSONL trace log."""
     TRACE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     trace = {

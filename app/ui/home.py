@@ -1,3 +1,5 @@
+"""Streamlit UI for RepoLens AI."""
+
 import httpx
 import streamlit as st
 
