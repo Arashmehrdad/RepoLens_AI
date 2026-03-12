@@ -23,6 +23,13 @@ def build_item(path: str, **flags):
         "is_docker": False,
         "is_compose": False,
         "is_workflow": False,
+        "is_changelog": False,
+        "is_release_note": False,
+        "is_version_file": False,
+        "is_deployment_file": False,
+        "is_docs_update": False,
+        "is_architecture_doc": False,
+        "is_test_file": False,
     }
     metadata.update(flags)
     return {
@@ -63,3 +70,14 @@ def test_setup_query_prefers_readme_and_entrypoint():
 
     assert compute_rerank_score(readme_item, intents) > compute_rerank_score(util_item, intents)
     assert compute_rerank_score(main_item, intents) > compute_rerank_score(util_item, intents)
+
+
+def test_release_mode_prefers_changelog_and_version_files():
+    intents = classify_query_intents("Summarize the latest release changes", mode="release")
+    changelog_item = build_item("CHANGELOG.md", is_changelog=True, is_release_note=True, is_docs_update=True)
+    version_item = build_item("pyproject.toml", is_version_file=True, is_config=True)
+    util_item = build_item("app/utils/helpers.py")
+
+    assert "release" in intents
+    assert compute_rerank_score(changelog_item, intents) > compute_rerank_score(util_item, intents)
+    assert compute_rerank_score(version_item, intents) > compute_rerank_score(util_item, intents)

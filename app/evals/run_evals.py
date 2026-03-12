@@ -24,11 +24,24 @@ if __name__ == "__main__":
     results_summary = []
 
     for case in EVAL_CASES:
-        result = answer_question(
-            query=case["query"],
-            collection_name=case["collection_name"],
-            mode=case["mode"],
-        )
+        try:
+            result = answer_question(
+                query=case["query"],
+                collection_name=case["collection_name"],
+                mode=case["mode"],
+            )
+        except Exception as exc:  # pylint: disable=broad-except
+            case_result = {
+                "name": case["name"],
+                "query": case["query"],
+                "mode": case["mode"],
+                "error": str(exc),
+                "passed": False,
+            }
+            results_summary.append(case_result)
+            print(f"\nCASE: {case['name']}")
+            print("ERROR:", exc)
+            continue
 
         refused = result["answer"].strip() == REFUSAL_TEXT
         refusal_ok = refused == case["should_refuse"]

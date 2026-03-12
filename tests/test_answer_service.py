@@ -17,10 +17,18 @@ def test_answer_question_refuses_when_citation_metadata_is_missing(monkeypatch):
     monkeypatch.setattr(
         answer_service,
         "retrieve_chunks",
-        lambda query, collection_name="repo_chunks", n_results=5: cleaned_chunks,
+        lambda query, collection_name="repo_chunks", n_results=5, mode=None, return_diagnostics=False: (
+            (cleaned_chunks, {"matched_intents": ["setup"], "fetch_count": 12, "raw_result_count": 1})
+            if return_diagnostics
+            else cleaned_chunks
+        ),
     )
-    monkeypatch.setattr(answer_service, "clean_retrieved_chunks", lambda chunks: chunks)
-    monkeypatch.setattr(answer_service, "log_trace", traces.append)
+    monkeypatch.setattr(
+        answer_service,
+        "clean_retrieved_chunks",
+        lambda chunks, query_intents=None: chunks,
+    )
+    monkeypatch.setattr(answer_service, "log_trace", lambda payload: traces.append(payload) or payload)
 
     def fail_if_called(*args, **kwargs):
         raise AssertionError("write_grounded_answer should not run for refusal cases")
@@ -32,6 +40,7 @@ def test_answer_question_refuses_when_citation_metadata_is_missing(monkeypatch):
     assert result["confidence"] == "low"
     assert result["citations"] == []
     assert "I do not have enough evidence" in result["answer"]
+    assert result["trace_summary"]["outcome"] == "refused"
     assert traces[0]["confidence"] == "low"
 
 
@@ -65,10 +74,18 @@ def test_answer_question_returns_line_aware_citations(monkeypatch):
     monkeypatch.setattr(
         answer_service,
         "retrieve_chunks",
-        lambda query, collection_name="repo_chunks", n_results=5: cleaned_chunks,
+        lambda query, collection_name="repo_chunks", n_results=5, mode=None, return_diagnostics=False: (
+            (cleaned_chunks, {"matched_intents": ["setup"], "fetch_count": 12, "raw_result_count": 4})
+            if return_diagnostics
+            else cleaned_chunks
+        ),
     )
-    monkeypatch.setattr(answer_service, "clean_retrieved_chunks", lambda chunks: chunks)
-    monkeypatch.setattr(answer_service, "log_trace", traces.append)
+    monkeypatch.setattr(
+        answer_service,
+        "clean_retrieved_chunks",
+        lambda chunks, query_intents=None: chunks,
+    )
+    monkeypatch.setattr(answer_service, "log_trace", lambda payload: traces.append(payload) or payload)
 
     def fake_write_grounded_answer(query, retrieved_chunks, mode="onboarding"):
         captured["chunks"] = retrieved_chunks
@@ -87,8 +104,26 @@ def test_answer_question_returns_line_aware_citations(monkeypatch):
     assert result["confidence"] == "high"
     assert len(result["citations"]) == 3
     assert len(captured["chunks"]) == 3
+    assert result["trace_summary"]["outcome"] == "answered"
+    assert result["trace_summary"]["query_intents"] == ["setup"]
     assert traces[0]["citations"] == [
         "README.md:12-28",
         "requirements.txt:1-10",
         "app/api/main.py:5-31",
     ]
+
+
+def test_answer_question_raises_clean_error_when_retrieval_is_unavailable(monkeypatch):
+    """Retrieval dependency failures should surface as a clear service error."""
+
+    def fail_retrieval(**kwargs):
+        raise PermissionError("blocked")
+
+    monkeypatch.setattr(answer_service, "retrieve_chunks", fail_retrieval)
+
+    try:
+        answer_service.answer_question("How do I run this project?")
+    except answer_service.AnswerServiceUnavailableError as exc:
+        assert "ready vector index" in str(exc)
+    else:
+        raise AssertionError("Expected AnswerServiceUnavailableError to be raised")

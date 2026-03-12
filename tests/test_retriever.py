@@ -34,6 +34,13 @@ class FakeCollection:
                     "is_docker": False,
                     "is_compose": False,
                     "is_workflow": False,
+                    "is_changelog": False,
+                    "is_release_note": False,
+                    "is_version_file": False,
+                    "is_deployment_file": False,
+                    "is_docs_update": False,
+                    "is_architecture_doc": False,
+                    "is_test_file": False,
                 },
                 {
                     "path": "README.md",
@@ -54,6 +61,13 @@ class FakeCollection:
                     "is_docker": False,
                     "is_compose": False,
                     "is_workflow": False,
+                    "is_changelog": False,
+                    "is_release_note": False,
+                    "is_version_file": False,
+                    "is_deployment_file": False,
+                    "is_docs_update": True,
+                    "is_architecture_doc": False,
+                    "is_test_file": False,
                 },
             ]],
             "distances": [[0.1, 0.6]],
@@ -71,3 +85,21 @@ def test_retrieve_chunks_fetches_extra_candidates_and_reranks(monkeypatch):
     assert len(results) == 2
     assert results[0]["metadata"]["path"] == "README.md"
     assert results[0]["matched_intents"] == ["setup"]
+
+
+def test_retrieve_chunks_can_return_diagnostics(monkeypatch):
+    """Retriever diagnostics should include intents and ranking previews."""
+    collection = FakeCollection()
+    monkeypatch.setattr(retriever, "get_vector_collection", lambda name: collection)
+
+    results, diagnostics = retriever.retrieve_chunks(
+        "How do I run this project?",
+        n_results=2,
+        return_diagnostics=True,
+    )
+
+    assert len(results) == 2
+    assert diagnostics["matched_intents"] == ["setup"]
+    assert diagnostics["fetch_count"] == 12
+    assert diagnostics["raw_result_count"] == 2
+    assert diagnostics["top_candidates"][0]["path"] == "README.md"

@@ -28,6 +28,13 @@ def build_document(content: str, path: str = "README.md") -> dict:
         "is_training": False,
         "is_workflow": False,
         "is_dependency_file": False,
+        "is_changelog": False,
+        "is_release_note": False,
+        "is_version_file": False,
+        "is_deployment_file": False,
+        "is_docs_update": filename.lower().startswith("readme") or suffix == ".md",
+        "is_architecture_doc": False,
+        "is_test_file": False,
     }
 
 

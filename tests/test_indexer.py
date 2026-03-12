@@ -47,6 +47,13 @@ def test_index_chunks_upserts_rich_metadata(monkeypatch):
         "is_training": False,
         "is_workflow": False,
         "is_dependency_file": False,
+        "is_changelog": False,
+        "is_release_note": False,
+        "is_version_file": False,
+        "is_deployment_file": False,
+        "is_docs_update": True,
+        "is_architecture_doc": False,
+        "is_test_file": False,
     }
 
     monkeypatch.setattr(indexer, "get_vector_collection", lambda name: collection)
@@ -60,3 +67,4 @@ def test_index_chunks_upserts_rich_metadata(monkeypatch):
     assert collection.calls[0]["metadatas"][0]["start_line"] == 12
     assert collection.calls[0]["metadatas"][0]["end_line"] == 28
     assert collection.calls[0]["metadatas"][0]["section"] == "Setup"
+    assert collection.calls[0]["metadatas"][0]["is_docs_update"] is True

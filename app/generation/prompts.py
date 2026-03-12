@@ -15,7 +15,8 @@ def build_mode_prompt(mode: str, query: str, evidence_text: str) -> str:
         ),
         "release": (
             "Summarize the repository evidence from a release-oriented perspective. "
-            "Focus on changes, configuration, docs, and deployment-related signals if present."
+            "Focus on changelogs, version files, deployment/config changes, "
+            "docs updates, and workflow signals."
         ),
     }
 

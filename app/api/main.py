@@ -1,5 +1,7 @@
 """FastAPI application for RepoLens AI."""
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 
 from app.api.schemas import (
@@ -10,24 +12,33 @@ from app.api.schemas import (
 )
 from app.core.env import load_environment
 from app.core.setup import ensure_directories
-from app.generation.answer_service import answer_question
+from app.generation.answer_service import AnswerServiceUnavailableError, answer_question
 from app.ingestion.pipeline import ingest_repository
 from app.ingestion.repo_manager import RepositoryCloneError
 
-app = FastAPI(title="RepoLens AI")
 
-
-@app.on_event("startup")
-def startup_event() -> None:
-    """Initialize environment variables and required directories."""
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    """Initialize environment variables and required directories on startup."""
+    del fastapi_app
     load_environment()
     ensure_directories()
+    yield
+
+
+app = FastAPI(title="RepoLens AI", version="0.4.0", lifespan=lifespan)
 
 
 @app.get("/")
 def read_root() -> dict[str, str]:
     """Return a basic health response."""
     return {"message": "RepoLens AI is running"}
+
+
+@app.get("/health")
+def read_health() -> dict[str, str]:
+    """Return a compact deployment health response."""
+    return {"status": "ok"}
 
 
 @app.post("/ingest", response_model=IngestResponse)
@@ -51,14 +62,18 @@ def ingest_repo(request: IngestRequest) -> IngestResponse:
 @app.post("/ask", response_model=QuestionResponse)
 def ask_question(request: QuestionRequest) -> QuestionResponse:
     """Answer a repository question using retrieved evidence."""
-    result = answer_question(
-        query=request.query,
-        collection_name=request.collection_name,
-        mode=request.mode,
-    )
+    try:
+        result = answer_question(
+            query=request.query,
+            collection_name=request.collection_name,
+            mode=request.mode,
+        )
+    except AnswerServiceUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return QuestionResponse(
         answer=result["answer"],
         citations=result["citations"],
         confidence=result["confidence"],
+        trace_summary=result.get("trace_summary"),
     )

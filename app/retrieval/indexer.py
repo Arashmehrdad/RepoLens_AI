@@ -39,6 +39,13 @@ def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> in
                 "is_training": chunk["is_training"],
                 "is_workflow": chunk["is_workflow"],
                 "is_dependency_file": chunk["is_dependency_file"],
+                "is_changelog": chunk["is_changelog"],
+                "is_release_note": chunk["is_release_note"],
+                "is_version_file": chunk["is_version_file"],
+                "is_deployment_file": chunk["is_deployment_file"],
+                "is_docs_update": chunk["is_docs_update"],
+                "is_architecture_doc": chunk["is_architecture_doc"],
+                "is_test_file": chunk["is_test_file"],
             }
         )
 

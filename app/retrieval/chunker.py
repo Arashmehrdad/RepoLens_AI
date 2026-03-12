@@ -153,6 +153,13 @@ def _build_chunk_record(
         "is_training": document["is_training"],
         "is_workflow": document["is_workflow"],
         "is_dependency_file": document["is_dependency_file"],
+        "is_changelog": document["is_changelog"],
+        "is_release_note": document["is_release_note"],
+        "is_version_file": document["is_version_file"],
+        "is_deployment_file": document["is_deployment_file"],
+        "is_docs_update": document["is_docs_update"],
+        "is_architecture_doc": document["is_architecture_doc"],
+        "is_test_file": document["is_test_file"],
     }
 
 

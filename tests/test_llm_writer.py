@@ -27,17 +27,19 @@ def test_write_grounded_answer_builds_prompt_from_top_three_chunks(monkeypatch):
     monkeypatch.setattr(llm_writer.genai, "Client", FakeClient)
 
     chunks = [
-        {"content": "one", "metadata": {"path": "README.md"}},
-        {"content": "two", "metadata": {"path": "app/api/main.py"}},
-        {"content": "three", "metadata": {"path": "requirements.txt"}},
-        {"content": "four", "metadata": {"path": "ignored.py"}},
+        {"content": "one", "metadata": {"path": "README.md", "start_line": 12, "end_line": 28, "section": "Setup", "symbol": ""}},
+        {"content": "two", "metadata": {"path": "app/api/main.py", "start_line": 5, "end_line": 31, "section": "", "symbol": "ask_question"}},
+        {"content": "three", "metadata": {"path": "requirements.txt", "start_line": 1, "end_line": 10, "section": "", "symbol": ""}},
+        {"content": "four", "metadata": {"path": "ignored.py", "start_line": 1, "end_line": 1, "section": "", "symbol": ""}},
     ]
 
     answer = llm_writer.write_grounded_answer("How do I run this project?", chunks)
 
     assert answer == "Grounded answer."
     assert calls[0]["model"] == llm_writer.MODEL_NAME
-    assert "FILE: README.md" in calls[0]["contents"]
-    assert "FILE: app/api/main.py" in calls[0]["contents"]
-    assert "FILE: requirements.txt" in calls[0]["contents"]
+    assert "FILE: README.md:12-28" in calls[0]["contents"]
+    assert "SECTION: Setup" in calls[0]["contents"]
+    assert "FILE: app/api/main.py:5-31" in calls[0]["contents"]
+    assert "SYMBOL: ask_question" in calls[0]["contents"]
+    assert "FILE: requirements.txt:1-10" in calls[0]["contents"]
     assert "ignored.py" not in calls[0]["contents"]

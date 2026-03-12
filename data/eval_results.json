@@ -1,45 +1,48 @@
 {
-  "passed": 3,
-  "total": 3,
+  "passed": 0,
+  "total": 6,
   "results": [
     {
-      "name": "run_dev_server",
-      "query": "How do I run the Flask development server?",
+      "name": "setup_local_run",
+      "query": "How do I run this project locally?",
       "mode": "onboarding",
-      "answer": "To run the Flask development server, use the command:\n`flask run`",
-      "citations": [
-        "src/flask/app.py [chunk 28]",
-        "README.md [chunk 0]"
-      ],
-      "confidence": "high",
-      "refusal_ok": true,
-      "citations_ok": true,
-      "passed": true
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
     },
     {
-      "name": "debug_server_start",
-      "query": "Where should I look if I want to change how the development server starts?",
+      "name": "architecture_overview",
+      "query": "How is this project structured?",
+      "mode": "onboarding",
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
+    },
+    {
+      "name": "debug_trace_flow",
+      "query": "Where should I look to inspect ask request tracing?",
       "mode": "debug",
-      "answer": "You should look in `src/flask/app.py`.\n\nThis file defines:\n*   Default host (\"127.0.0.1\") and port (5000) for the server.\n*   Default options like `use_reloader` (set to `self.debug`), `use_debugger` (set to `self.debug`), and `threaded` (set to `True`).\n*   The call to `werkzeug.serving.run_simple` which initiates the server with the host, port, and these options.",
-      "citations": [
-        "src/flask/app.py [chunk 30]",
-        "src/flask/sansio/app.py [chunk 6]"
-      ],
-      "confidence": "high",
-      "refusal_ok": true,
-      "citations_ok": true,
-      "passed": true
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
+    },
+    {
+      "name": "deployment_artifacts",
+      "query": "What deployment artifacts are available for this project?",
+      "mode": "release",
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
+    },
+    {
+      "name": "release_summary",
+      "query": "What changed in v0.4.0?",
+      "mode": "release",
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
     },
     {
       "name": "out_of_scope_question",
       "query": "What is the capital of France?",
       "mode": "onboarding",
-      "answer": "I do not have enough evidence in the repository to answer that confidently.",
-      "citations": [],
-      "confidence": "low",
-      "refusal_ok": true,
-      "citations_ok": true,
-      "passed": true
+      "error": "Question answering requires a ready vector index and an embedding model available locally or via an initial network download.",
+      "passed": false
     }
   ]
 }

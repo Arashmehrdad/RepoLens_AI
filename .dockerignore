@@ -1,0 +1,12 @@
+.git
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache
+.venv
+venv
+data/repos
+data/vector_store
+logs
