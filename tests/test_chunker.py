@@ -3,25 +3,28 @@
 from app.retrieval.chunker import chunk_documents
 
 
-def build_document(content: str) -> dict:
+def build_document(content: str, path: str = "README.md") -> dict:
     """Create a retrieval document with the required metadata fields."""
+    filename = path.split("/")[-1]
+    suffix = f".{filename.split('.')[-1]}" if "." in filename else ""
+
     return {
         "content": content,
-        "path": "README.md",
-        "path_lower": "readme.md",
-        "filename": "README.md",
-        "filename_lower": "readme.md",
-        "suffix": ".md",
-        "stem": "readme",
-        "parent_dirs": [],
+        "path": path,
+        "path_lower": path.lower(),
+        "filename": filename,
+        "filename_lower": filename.lower(),
+        "suffix": suffix,
+        "stem": filename.rsplit(".", maxsplit=1)[0].lower() if suffix else filename.lower(),
+        "parent_dirs": path.split("/")[:-1],
         "parent_dirs_joined": "",
-        "depth": 1,
-        "is_readme": True,
+        "depth": len(path.split("/")),
+        "is_readme": filename.lower().startswith("readme"),
         "is_config": False,
         "is_docker": False,
         "is_compose": False,
-        "is_api": False,
-        "is_app_entry": False,
+        "is_api": "api" in path.lower().split("/"),
+        "is_app_entry": filename.rsplit(".", maxsplit=1)[0].lower() in {"main", "app", "server", "run", "manage"},
         "is_training": False,
         "is_workflow": False,
         "is_dependency_file": False,
@@ -38,6 +41,10 @@ def test_chunk_documents_splits_long_paragraphs_with_overlap():
     assert chunks[0]["content"] == source_text[:100]
     assert chunks[1]["content"].startswith(source_text[80:100])
     assert chunks[1]["chunk_index"] == 1
+    assert chunks[0]["start_line"] == 1
+    assert chunks[0]["end_line"] == 1
+    assert chunks[1]["start_line"] == 1
+    assert chunks[1]["end_line"] == 1
 
 
 def test_chunk_documents_copies_document_metadata():
@@ -48,3 +55,26 @@ def test_chunk_documents_copies_document_metadata():
     assert chunks[0]["path"] == "README.md"
     assert chunks[0]["filename"] == "README.md"
     assert chunks[0]["is_readme"] is True
+    assert chunks[0]["start_line"] == 1
+    assert chunks[0]["end_line"] == 3
+
+
+def test_chunk_documents_tracks_markdown_sections():
+    """Markdown chunks should carry the nearest heading as section metadata."""
+    content = "# Setup\n\nRun the app with uvicorn.\n"
+
+    chunks = chunk_documents([build_document(content)], chunk_size=200)
+
+    assert len(chunks) == 1
+    assert chunks[0]["section"] == "Setup"
+    assert chunks[0]["symbol"] == ""
+
+
+def test_chunk_documents_tracks_python_symbols():
+    """Python chunks should carry the nearest def or class symbol when available."""
+    content = "def start_server():\n    return 'ok'\n"
+
+    chunks = chunk_documents([build_document(content, path="app/api/main.py")], chunk_size=200)
+
+    assert len(chunks) == 1
+    assert chunks[0]["symbol"] == "start_server"

@@ -34,6 +34,10 @@ def test_index_chunks_upserts_rich_metadata(monkeypatch):
         "parent_dirs_joined": "",
         "depth": 1,
         "chunk_index": 0,
+        "start_line": 12,
+        "end_line": 28,
+        "section": "Setup",
+        "symbol": "",
         "is_readme": True,
         "is_config": False,
         "is_docker": False,
@@ -53,3 +57,6 @@ def test_index_chunks_upserts_rich_metadata(monkeypatch):
     assert collection.calls[0]["ids"] == ["README.md::chunk_0"]
     assert collection.calls[0]["documents"] == ["Run the app with uvicorn."]
     assert collection.calls[0]["metadatas"][0]["is_readme"] is True
+    assert collection.calls[0]["metadatas"][0]["start_line"] == 12
+    assert collection.calls[0]["metadatas"][0]["end_line"] == 28
+    assert collection.calls[0]["metadatas"][0]["section"] == "Setup"

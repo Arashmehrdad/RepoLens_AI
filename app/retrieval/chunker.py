@@ -1,64 +1,308 @@
 """Chunking utilities for repository documents."""
 
 import re
+from bisect import bisect_right
 
 
-def _split_paragraphs(text: str) -> list[str]:
-    """Split a file into non-empty paragraph blocks."""
-    return [
-        paragraph.strip()
-        for paragraph in re.split(r"\n\s*\n", text)
-        if paragraph.strip()
-    ]
+def _empty_context() -> dict:
+    """Return the default section and symbol context."""
+    return {
+        "section": "",
+        "symbol": "",
+    }
 
 
-def _chunk_long_paragraph(paragraph: str, chunk_size: int, chunk_overlap: int) -> list[str]:
-    """Chunk a single long paragraph with character overlap."""
-    parts = []
-    start = 0
-    step = max(1, chunk_size - chunk_overlap)
+def _build_line_starts(text: str) -> list[int]:
+    """Return the character offset where each 1-based line begins."""
+    line_starts = [0]
 
-    while start < len(paragraph):
-        end = start + chunk_size
-        parts.append(paragraph[start:end].strip())
-        if end >= len(paragraph):
-            break
-        start += step
+    for match in re.finditer(r"\n", text):
+        line_starts.append(match.end())
 
-    return parts
+    return line_starts
 
 
-def _build_chunk_records(document: dict, chunk_texts: list[str]) -> list[dict]:
-    """Attach metadata to chunk texts."""
-    records = []
+def _line_number_for_offset(line_starts: list[int], offset: int) -> int:
+    """Map a character offset back to a 1-based line number."""
+    adjusted_offset = max(offset, 0)
+    return bisect_right(line_starts, adjusted_offset) if line_starts else 1
 
-    for chunk_index, chunk_text in enumerate(chunk_texts):
-        records.append(
+
+def _build_line_contexts(lines: list[str], suffix: str) -> list[dict]:
+    """Track the nearest heading or symbol for each file line."""
+    current_section = ""
+    current_symbol = ""
+    contexts = []
+
+    for line in lines:
+        stripped_line = line.lstrip()
+
+        if suffix == ".md":
+            heading_match = re.match(r"#{1,6}\s+(.*)", stripped_line)
+            if heading_match:
+                current_section = heading_match.group(1).strip()
+
+        if suffix == ".py":
+            symbol_match = re.match(
+                r"(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)",
+                stripped_line,
+            )
+            if symbol_match:
+                current_symbol = symbol_match.group(1)
+
+        contexts.append(
             {
-                "content": chunk_text,
-                "chunk_index": chunk_index,
-                "path": document["path"],
-                "path_lower": document["path_lower"],
-                "filename": document["filename"],
-                "filename_lower": document["filename_lower"],
-                "suffix": document["suffix"],
-                "stem": document["stem"],
-                "parent_dirs": document["parent_dirs"],
-                "parent_dirs_joined": document["parent_dirs_joined"],
-                "depth": document["depth"],
-                "is_readme": document["is_readme"],
-                "is_config": document["is_config"],
-                "is_docker": document["is_docker"],
-                "is_compose": document["is_compose"],
-                "is_api": document["is_api"],
-                "is_app_entry": document["is_app_entry"],
-                "is_training": document["is_training"],
-                "is_workflow": document["is_workflow"],
-                "is_dependency_file": document["is_dependency_file"],
+                "section": current_section,
+                "symbol": current_symbol,
             }
         )
 
-    return records
+    return contexts
+
+
+def _lookup_line_context(line_contexts: list[dict], line_number: int) -> dict:
+    """Look up the nearest heading or symbol for a 1-based line number."""
+    if not line_contexts:
+        return _empty_context()
+
+    return line_contexts[line_number - 1]
+
+
+def _build_chunk_context(text: str, suffix: str) -> dict:
+    """Collect reusable line metadata for a document."""
+    return {
+        "text": text,
+        "line_starts": _build_line_starts(text),
+        "line_contexts": _build_line_contexts(text.splitlines(), suffix),
+    }
+
+
+def _split_paragraphs(text: str, suffix: str) -> list[dict]:
+    """Split a file into non-empty paragraph blocks with line metadata."""
+    lines_with_endings = text.splitlines(keepends=True)
+    plain_lines = text.splitlines()
+    line_contexts = _build_line_contexts(plain_lines, suffix)
+    paragraphs = []
+    current_lines = []
+    current_start_line = 0
+    current_start_offset = 0
+    current_offset = 0
+
+    for line_number, line in enumerate(lines_with_endings, start=1):
+        if line.strip():
+            if not current_lines:
+                current_start_line = line_number
+                current_start_offset = current_offset
+            current_lines.append(line)
+        elif current_lines:
+            context = _lookup_line_context(line_contexts, current_start_line)
+            paragraphs.append(
+                {
+                    "start_offset": current_start_offset,
+                    "end_offset": current_offset,
+                    "start_line": current_start_line,
+                    "end_line": line_number - 1,
+                    **context,
+                }
+            )
+            current_lines = []
+
+        current_offset += len(line)
+
+    if current_lines:
+        context = _lookup_line_context(line_contexts, current_start_line)
+        paragraphs.append(
+            {
+                "start_offset": current_start_offset,
+                "end_offset": current_offset,
+                "start_line": current_start_line,
+                "end_line": len(lines_with_endings),
+                **context,
+            }
+        )
+
+    return paragraphs
+
+
+def _build_chunk_record(
+    document: dict,
+    chunk_index: int,
+    chunk_text: str,
+    span_metadata: dict,
+) -> dict:
+    """Attach metadata to a single chunk."""
+    return {
+        "content": chunk_text,
+        "chunk_index": chunk_index,
+        "path": document["path"],
+        "path_lower": document["path_lower"],
+        "filename": document["filename"],
+        "filename_lower": document["filename_lower"],
+        "suffix": document["suffix"],
+        "stem": document["stem"],
+        "parent_dirs": document["parent_dirs"],
+        "parent_dirs_joined": document["parent_dirs_joined"],
+        "depth": document["depth"],
+        **span_metadata,
+        "is_readme": document["is_readme"],
+        "is_config": document["is_config"],
+        "is_docker": document["is_docker"],
+        "is_compose": document["is_compose"],
+        "is_api": document["is_api"],
+        "is_app_entry": document["is_app_entry"],
+        "is_training": document["is_training"],
+        "is_workflow": document["is_workflow"],
+        "is_dependency_file": document["is_dependency_file"],
+    }
+
+
+def _build_chunk_from_offsets(
+    document: dict,
+    chunk_context: dict,
+    chunk_index: int,
+    start_offset: int,
+    end_offset: int,
+) -> dict | None:
+    """Create a chunk record from raw file offsets."""
+    text = chunk_context["text"]
+    chunk_text = text[start_offset:end_offset].strip()
+    if not chunk_text:
+        return None
+
+    start_line = _line_number_for_offset(chunk_context["line_starts"], start_offset)
+    end_line = _line_number_for_offset(
+        chunk_context["line_starts"],
+        max(start_offset, end_offset - 1),
+    )
+    span_metadata = {
+        "start_line": start_line,
+        "end_line": end_line,
+        **_lookup_line_context(chunk_context["line_contexts"], start_line),
+    }
+
+    return _build_chunk_record(
+        document=document,
+        chunk_index=chunk_index,
+        chunk_text=chunk_text,
+        span_metadata=span_metadata,
+    )
+
+
+def _chunk_long_paragraph(
+    document: dict,
+    chunk_context: dict,
+    paragraph: dict,
+    chunk_index: int,
+    chunk_settings: dict,
+) -> tuple[list[dict], int]:
+    """Chunk a single long paragraph with character overlap."""
+    parts = []
+    start = paragraph["start_offset"]
+    step = max(1, chunk_settings["chunk_size"] - chunk_settings["chunk_overlap"])
+    paragraph_end = paragraph["end_offset"]
+
+    while start < paragraph_end:
+        end = min(start + chunk_settings["chunk_size"], paragraph_end)
+        chunk_record = _build_chunk_from_offsets(
+            document=document,
+            chunk_context=chunk_context,
+            chunk_index=chunk_index,
+            start_offset=start,
+            end_offset=end,
+        )
+        if chunk_record is not None:
+            parts.append(chunk_record)
+            chunk_index += 1
+
+        if end >= paragraph_end:
+            break
+        start += step
+
+    return parts, chunk_index
+
+
+def _chunk_single_document(document: dict, chunk_settings: dict) -> list[dict]:
+    """Chunk a single document while preserving line-aware metadata."""
+    text = document["content"]
+    if not text or not text.strip():
+        return []
+
+    chunk_context = _build_chunk_context(text, document["suffix"])
+    paragraphs = _split_paragraphs(text, document["suffix"])
+    if not paragraphs:
+        return []
+
+    document_chunks = []
+    chunk_index = 0
+    current_chunk = {}
+
+    for paragraph in paragraphs:
+        paragraph_text = text[paragraph["start_offset"]:paragraph["end_offset"]].strip()
+        if not current_chunk:
+            if len(paragraph_text) > chunk_settings["chunk_size"]:
+                paragraph_chunks, chunk_index = _chunk_long_paragraph(
+                    document=document,
+                    chunk_context=chunk_context,
+                    paragraph=paragraph,
+                    chunk_index=chunk_index,
+                    chunk_settings=chunk_settings,
+                )
+                document_chunks.extend(paragraph_chunks)
+            else:
+                current_chunk = {
+                    "start_offset": paragraph["start_offset"],
+                    "end_offset": paragraph["end_offset"],
+                }
+            continue
+
+        candidate_text = text[current_chunk["start_offset"]:paragraph["end_offset"]].strip()
+        if len(candidate_text) <= chunk_settings["chunk_size"]:
+            current_chunk["end_offset"] = paragraph["end_offset"]
+            continue
+
+        chunk_record = _build_chunk_from_offsets(
+            document=document,
+            chunk_context=chunk_context,
+            chunk_index=chunk_index,
+            start_offset=current_chunk["start_offset"],
+            end_offset=current_chunk["end_offset"],
+        )
+        if chunk_record is not None:
+            document_chunks.append(chunk_record)
+            chunk_index += 1
+
+        if len(paragraph_text) > chunk_settings["chunk_size"]:
+            paragraph_chunks, chunk_index = _chunk_long_paragraph(
+                document=document,
+                chunk_context=chunk_context,
+                paragraph=paragraph,
+                chunk_index=chunk_index,
+                chunk_settings=chunk_settings,
+            )
+            document_chunks.extend(paragraph_chunks)
+            current_chunk = {}
+            continue
+
+        current_chunk = {
+            "start_offset": max(
+                current_chunk["end_offset"] - chunk_settings["chunk_overlap"],
+                current_chunk["start_offset"],
+            ),
+            "end_offset": paragraph["end_offset"],
+        }
+
+    if current_chunk:
+        chunk_record = _build_chunk_from_offsets(
+            document=document,
+            chunk_context=chunk_context,
+            chunk_index=chunk_index,
+            start_offset=current_chunk["start_offset"],
+            end_offset=current_chunk["end_offset"],
+        )
+        if chunk_record is not None:
+            document_chunks.append(chunk_record)
+
+    return document_chunks
 
 
 def chunk_documents(
@@ -68,49 +312,12 @@ def chunk_documents(
 ) -> list[dict]:
     """Chunk documents with overlap across adjacent chunk boundaries."""
     chunks = []
+    chunk_settings = {
+        "chunk_size": chunk_size,
+        "chunk_overlap": chunk_overlap,
+    }
 
     for document in documents:
-        text = document["content"].strip()
-        if not text:
-            continue
-
-        paragraphs = _split_paragraphs(text)
-        if not paragraphs:
-            continue
-
-        chunk_texts = []
-        current_chunk = ""
-
-        for paragraph in paragraphs:
-            if len(paragraph) > chunk_size:
-                if current_chunk:
-                    chunk_texts.append(current_chunk.strip())
-                    current_chunk = ""
-
-                chunk_texts.extend(
-                    _chunk_long_paragraph(paragraph, chunk_size, chunk_overlap)
-                )
-                continue
-
-            candidate = f"{current_chunk}\n\n{paragraph}".strip() if current_chunk else paragraph
-            if len(candidate) <= chunk_size:
-                current_chunk = candidate
-                continue
-
-            if current_chunk:
-                chunk_texts.append(current_chunk.strip())
-                overlap_text = current_chunk[-chunk_overlap:].strip()
-                current_chunk = (
-                    f"{overlap_text}\n\n{paragraph}".strip()
-                    if overlap_text
-                    else paragraph
-                )
-            else:
-                current_chunk = paragraph
-
-        if current_chunk:
-            chunk_texts.append(current_chunk.strip())
-
-        chunks.extend(_build_chunk_records(document, chunk_texts))
+        chunks.extend(_chunk_single_document(document, chunk_settings))
 
     return chunks

@@ -1,6 +1,6 @@
 # RepoLens AI
 
-RepoLens AI is an evaluated GitHub codebase assistant that ingests a repository, retrieves relevant evidence, answers questions with file-level citations, and refuses when the evidence is weak.
+RepoLens AI is an evaluated GitHub codebase assistant that ingests a repository, retrieves relevant evidence, answers questions with line-aware citations, and refuses when the evidence is weak.
 
 ## Why this project exists
 
@@ -12,7 +12,7 @@ Developers waste time trying to understand unfamiliar repositories. RepoLens AI 
 * File parsing for useful repository documents
 * Chunking and vector indexing with Chroma
 * Retrieval-based question answering
-* File-level citations
+* Line-aware citations
 * Evidence-gated refusal behavior
 * Multiple answer modes:
 
@@ -69,6 +69,12 @@ repolens-ai/
 * What files are most relevant to deployment?
 * Where should I look if I want to change how the development server starts?
 
+## Citation format
+
+Before: `README.md`
+
+After: `README.md:12-28`
+
 ## Evaluation status
 
 Current saved evaluation results are stored in:
@@ -87,13 +93,12 @@ logs/traces.jsonl
 
 * Retrieval quality still depends on chunking and repository structure
 * Release mode is prompt-shaped, not commit-aware yet
-* Citations are file-level with chunk references, not line ranges
+* Section and symbol detection is heuristic and may be blank for some file types
 * Large repositories may need better filtering and indexing strategy
 
 ## Next priorities
 
 * Improve retrieval precision
-* Add line-range style citations if feasible
 * Improve release-mode evidence selection
 * Add latency metrics to traces
 * Prepare deployment

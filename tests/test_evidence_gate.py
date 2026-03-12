@@ -8,7 +8,7 @@ def test_has_enough_evidence_returns_true_for_strong_chunk():
     retrieved_chunks = [
         {
             "distance": 0.2,
-            "metadata": {"path": "README.md"},
+            "metadata": {"path": "README.md", "start_line": 12, "end_line": 28},
         }
     ]
 
@@ -20,6 +20,18 @@ def test_has_enough_evidence_returns_false_for_distant_chunks():
     retrieved_chunks = [
         {
             "distance": 2.0,
+            "metadata": {"path": "README.md", "start_line": 12, "end_line": 28},
+        }
+    ]
+
+    assert has_enough_evidence(retrieved_chunks) is False
+
+
+def test_has_enough_evidence_requires_line_metadata():
+    """Strong chunks without line spans should not pass the evidence gate."""
+    retrieved_chunks = [
+        {
+            "distance": 0.2,
             "metadata": {"path": "README.md"},
         }
     ]
