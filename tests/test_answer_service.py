@@ -35,7 +35,10 @@ def test_answer_question_refuses_when_citation_metadata_is_missing(monkeypatch):
 
     monkeypatch.setattr(answer_service, "write_grounded_answer", fail_if_called)
 
-    result = answer_service.answer_question("What is the capital of France?")
+    result = answer_service.answer_question(
+        "What is the capital of France?",
+        collection_name="repo_repolens_ai",
+    )
 
     assert result["confidence"] == "low"
     assert result["citations"] == []
@@ -93,7 +96,10 @@ def test_answer_question_returns_line_aware_citations(monkeypatch):
 
     monkeypatch.setattr(answer_service, "write_grounded_answer", fake_write_grounded_answer)
 
-    result = answer_service.answer_question("How do I run this project?")
+    result = answer_service.answer_question(
+        "How do I run this project?",
+        collection_name="repo_repolens_ai",
+    )
 
     assert result["answer"] == "Use uvicorn."
     assert result["citations"] == [
@@ -122,7 +128,10 @@ def test_answer_question_raises_clean_error_when_retrieval_is_unavailable(monkey
     monkeypatch.setattr(answer_service, "retrieve_chunks", fail_retrieval)
 
     try:
-        answer_service.answer_question("How do I run this project?")
+        answer_service.answer_question(
+            "How do I run this project?",
+            collection_name="repo_repolens_ai",
+        )
     except answer_service.AnswerServiceUnavailableError as exc:
         assert "ready vector index" in str(exc)
     else:

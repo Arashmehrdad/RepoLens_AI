@@ -13,7 +13,7 @@ from app.api.schemas import (
 from app.core.env import load_environment
 from app.core.setup import ensure_directories
 from app.generation.answer_service import AnswerServiceUnavailableError, answer_question
-from app.ingestion.pipeline import ingest_repository
+from app.ingestion.pipeline import ingest_repository, resolve_collection_name
 from app.ingestion.repo_manager import RepositoryCloneError
 
 
@@ -63,11 +63,17 @@ def ingest_repo(request: IngestRequest) -> IngestResponse:
 def ask_question(request: QuestionRequest) -> QuestionResponse:
     """Answer a repository question using retrieved evidence."""
     try:
+        collection_name = resolve_collection_name(
+            repo_url=request.repo_url,
+            collection_name=request.collection_name,
+        )
         result = answer_question(
             query=request.query,
-            collection_name=request.collection_name,
+            collection_name=collection_name,
             mode=request.mode,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except AnswerServiceUnavailableError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

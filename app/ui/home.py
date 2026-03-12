@@ -43,6 +43,7 @@ def handle_ingest(api_base_url: str, repo_url: str) -> None:
 
     if response.status_code == 200:
         data = response.json()
+        st.session_state.repo_url = repo_url.strip()
         st.session_state.collection_name = data["collection_name"]
         st.success("Repository ingested successfully.")
         st.json(data)
@@ -65,6 +66,7 @@ def handle_question(api_base_url: str, question: str, mode: str) -> None:
             f"{api_base_url}/ask",
             json={
                 "query": question,
+                "repo_url": st.session_state.get("repo_url"),
                 "collection_name": st.session_state.collection_name,
                 "mode": mode,
             },
@@ -100,6 +102,8 @@ def main() -> None:
 
     if "collection_name" not in st.session_state:
         st.session_state.collection_name = None
+    if "repo_url" not in st.session_state:
+        st.session_state.repo_url = None
 
     repo_url = st.text_input(
         "GitHub repository URL",

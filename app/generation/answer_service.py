@@ -101,7 +101,7 @@ def _finalize_result(
 
 def answer_question(
     query: str,
-    collection_name: str = "repo_chunks",
+    collection_name: str,
     mode: str = "onboarding",
     n_results: int = 5,
 ) -> dict:

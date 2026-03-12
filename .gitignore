@@ -15,5 +15,6 @@ env/
 .streamlit/secrets.toml
 data/repos/
 data/vector_store/
+data/model_cache/
 logs/
 *.sqlite3

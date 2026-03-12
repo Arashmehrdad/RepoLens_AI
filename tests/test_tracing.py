@@ -36,10 +36,14 @@ def test_answer_service_trace_payload_includes_latency_and_counts(monkeypatch):
         lambda payload: captured_traces.append(payload) or {"timestamp": "2026-03-12T12:00:00+00:00", **payload},
     )
 
-    result = answer_service.answer_question("How do I run this project?")
+    result = answer_service.answer_question(
+        "How do I run this project?",
+        collection_name="repo_repolens_ai",
+    )
     trace_payload = captured_traces[0]
 
     assert result["trace_summary"]["request_id"]
+    assert trace_payload["collection_name"] == "repo_repolens_ai"
     assert isinstance(trace_payload["request_latency_ms"], float)
     assert isinstance(trace_payload["retrieval_latency_ms"], float)
     assert trace_payload["chunks_retrieved_count"] == 1

@@ -26,7 +26,8 @@ class QuestionRequest(BaseModel):
     """Payload for asking a question against an indexed repository."""
 
     query: str
-    collection_name: str = "repo_chunks"
+    repo_url: str | None = None
+    collection_name: str | None = None
     mode: str = "onboarding"
 
 
