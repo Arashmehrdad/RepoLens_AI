@@ -30,6 +30,10 @@ def build_item(path: str, **flags):
         "is_docs_update": False,
         "is_architecture_doc": False,
         "is_test_file": False,
+        "is_example_file": False,
+        "is_ci_file": False,
+        "is_package_config": False,
+        "is_tutorial_doc": False,
     }
     metadata.update(flags)
     return {
@@ -72,6 +76,15 @@ def test_setup_query_prefers_readme_and_entrypoint():
     assert compute_rerank_score(main_item, intents) > compute_rerank_score(util_item, intents)
 
 
+def test_ui_query_prefers_streamlit_home_module():
+    intents = classify_query_intents("How does the UI choose the API base URL?")
+    ui_item = build_item("app/ui/home.py", is_docs_update=True)
+    util_item = build_item("app/utils/strings.py")
+
+    assert "ui" in intents
+    assert compute_rerank_score(ui_item, intents) > compute_rerank_score(util_item, intents)
+
+
 def test_release_mode_prefers_changelog_and_version_files():
     intents = classify_query_intents("Summarize the latest release changes", mode="release")
     changelog_item = build_item("CHANGELOG.md", is_changelog=True, is_release_note=True, is_docs_update=True)
@@ -81,3 +94,13 @@ def test_release_mode_prefers_changelog_and_version_files():
     assert "release" in intents
     assert compute_rerank_score(changelog_item, intents) > compute_rerank_score(util_item, intents)
     assert compute_rerank_score(version_item, intents) > compute_rerank_score(util_item, intents)
+
+
+def test_release_mode_prefers_ci_and_package_release_metadata():
+    intents = classify_query_intents("How is the release published?", mode="release")
+    workflow_item = build_item(".github/workflows/release.yml", is_workflow=True, is_ci_file=True)
+    package_item = build_item("package.json", is_package_config=True, is_version_file=True)
+    util_item = build_item("app/utils/helpers.py")
+
+    assert compute_rerank_score(workflow_item, intents) > compute_rerank_score(util_item, intents)
+    assert compute_rerank_score(package_item, intents) > compute_rerank_score(util_item, intents)

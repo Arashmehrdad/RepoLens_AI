@@ -1,10 +1,11 @@
 """Vector indexing helpers."""
 
-from app.retrieval.vector_store import get_vector_collection
+from app.retrieval.vector_store import get_vector_collection, reset_vector_collection
 
 
 def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
     """Upsert chunk content plus rich metadata into the vector store."""
+    reset_vector_collection(collection_name)
     collection = get_vector_collection(collection_name)
 
     ids = []
@@ -46,6 +47,10 @@ def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> in
                 "is_docs_update": chunk["is_docs_update"],
                 "is_architecture_doc": chunk["is_architecture_doc"],
                 "is_test_file": chunk["is_test_file"],
+                "is_example_file": chunk.get("is_example_file", False),
+                "is_ci_file": chunk.get("is_ci_file", False),
+                "is_package_config": chunk.get("is_package_config", False),
+                "is_tutorial_doc": chunk.get("is_tutorial_doc", False),
             }
         )
 

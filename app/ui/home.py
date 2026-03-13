@@ -28,6 +28,47 @@ def render_trace_summary(trace_summary: dict | None) -> None:
     st.json(trace_summary)
 
 
+def render_retrieval_diagnostics(retrieval_diagnostics: dict | None) -> None:
+    """Render retrieval diagnostics when they are available."""
+    if not retrieval_diagnostics:
+        return
+
+    with st.expander("Retrieval Diagnostics", expanded=False):
+        st.json(retrieval_diagnostics)
+
+
+def build_status_banner(response_payload: dict) -> tuple[str, str]:
+    """Return a banner tone and message for an ask response."""
+    outcome = response_payload.get("outcome", "answered")
+    confidence = response_payload.get("confidence", "low")
+    error_message = response_payload.get("error_message")
+
+    if outcome == "answered":
+        return "success", f"Answered with {confidence} confidence."
+
+    if outcome == "fallback_answered":
+        return "warning", error_message or "Returned a fallback answer from retrieved evidence."
+
+    if outcome == "refused":
+        return "info", "Refused because the repository evidence was too weak."
+
+    return "error", error_message or "The request completed with a retrieval error."
+
+
+def extract_error_details(response: httpx.Response) -> tuple[str | None, str]:
+    """Return a user-safe error code and message from an API response."""
+    try:
+        payload = response.json()
+    except ValueError:
+        return None, response.text
+
+    detail = payload.get("detail", payload)
+    if isinstance(detail, dict):
+        return detail.get("error_code"), detail.get("error_message", response.text)
+
+    return None, str(detail)
+
+
 def handle_ingest(api_base_url: str, repo_url: str) -> None:
     """Send the ingest request and render the result."""
     if not repo_url.strip():
@@ -48,7 +89,11 @@ def handle_ingest(api_base_url: str, repo_url: str) -> None:
         st.success("Repository ingested successfully.")
         st.json(data)
     else:
-        st.error(f"Ingestion failed: {response.text}")
+        error_code, error_message = extract_error_details(response)
+        if error_code:
+            st.error(f"Ingestion failed [{error_code}]: {error_message}")
+        else:
+            st.error(f"Ingestion failed: {error_message}")
 
 
 def handle_question(api_base_url: str, question: str, mode: str) -> None:
@@ -75,20 +120,33 @@ def handle_question(api_base_url: str, question: str, mode: str) -> None:
 
     if response.status_code == 200:
         data = response.json()
+        banner_tone, banner_message = build_status_banner(data)
+        getattr(st, banner_tone)(banner_message)
 
         st.subheader("Answer")
         st.write(data["answer"])
 
-        st.subheader("Confidence")
-        st.write(data["confidence"])
+        status_column, confidence_column = st.columns(2)
+        status_column.metric("Outcome", data.get("outcome", "answered"))
+        confidence_column.metric("Confidence", data["confidence"])
+
+        if data.get("error_code"):
+            st.caption(f"Error code: {data['error_code']}")
+        if data.get("error_message"):
+            st.caption(data["error_message"])
 
         st.subheader("Citations")
         for citation in data["citations"]:
             st.code(citation)
 
         render_trace_summary(data.get("trace_summary"))
+        render_retrieval_diagnostics(data.get("retrieval_diagnostics"))
     else:
-        st.error(f"Question failed: {response.text}")
+        error_code, error_message = extract_error_details(response)
+        if error_code:
+            st.error(f"Question failed [{error_code}]: {error_message}")
+        else:
+            st.error(f"Question failed: {error_message}")
 
 
 def main() -> None:
@@ -126,6 +184,7 @@ def main() -> None:
 
     if st.button("Ask Question"):
         handle_question(api_base_url, question, mode)
+
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,206 @@
+{
+  "version": "v0.5.0",
+  "timestamp": "20260313T171901Z",
+  "total_cases": 10,
+  "passed_cases": 4,
+  "pass_rate": 0.4,
+  "refusal_correctness": 1.0,
+  "citation_correctness": 0.6,
+  "relevance_proxy_score": 0.825,
+  "latency": {
+    "count": 10,
+    "avg_ms": 275.36,
+    "min_ms": 168.56,
+    "max_ms": 788.28,
+    "p95_ms": 788.28
+  },
+  "per_mode": {
+    "onboarding": {
+      "total": 6,
+      "passed": 3,
+      "pass_rate": 0.5,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.833,
+      "relevance_proxy_score": 0.875,
+      "latency": {
+        "count": 6,
+        "avg_ms": 330.82,
+        "min_ms": 168.56,
+        "max_ms": 788.28,
+        "p95_ms": 788.28
+      }
+    },
+    "debug": {
+      "total": 2,
+      "passed": 1,
+      "pass_rate": 0.5,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.5,
+      "relevance_proxy_score": 0.875,
+      "latency": {
+        "count": 2,
+        "avg_ms": 181.51,
+        "min_ms": 179.81,
+        "max_ms": 183.22,
+        "p95_ms": 183.22
+      }
+    },
+    "release": {
+      "total": 2,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.0,
+      "relevance_proxy_score": 0.625,
+      "latency": {
+        "count": 2,
+        "avg_ms": 202.82,
+        "min_ms": 182.09,
+        "max_ms": 223.56,
+        "p95_ms": 223.56
+      }
+    }
+  },
+  "per_category": {
+    "small_python_app": {
+      "total": 3,
+      "passed": 1,
+      "pass_rate": 0.333,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.667,
+      "relevance_proxy_score": 0.833,
+      "latency": {
+        "count": 3,
+        "avg_ms": 461.39,
+        "min_ms": 168.56,
+        "max_ms": 788.28,
+        "p95_ms": 788.28
+      }
+    },
+    "api_service": {
+      "total": 2,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.5,
+      "relevance_proxy_score": 0.75,
+      "latency": {
+        "count": 2,
+        "avg_ms": 178.5,
+        "min_ms": 177.2,
+        "max_ms": 179.81,
+        "p95_ms": 179.81
+      }
+    },
+    "frontend_or_ui_repo": {
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 1.0,
+      "relevance_proxy_score": 1.0,
+      "latency": {
+        "count": 1,
+        "avg_ms": 172.04,
+        "min_ms": 172.04,
+        "max_ms": 172.04,
+        "p95_ms": 172.04
+      }
+    },
+    "infra_or_devops_repo": {
+      "total": 2,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.0,
+      "relevance_proxy_score": 0.625,
+      "latency": {
+        "count": 2,
+        "avg_ms": 202.82,
+        "min_ms": 182.09,
+        "max_ms": 223.56,
+        "p95_ms": 223.56
+      }
+    },
+    "noisy_large_repo": {
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 1.0,
+      "relevance_proxy_score": 1.0,
+      "latency": {
+        "count": 1,
+        "avg_ms": 183.22,
+        "min_ms": 183.22,
+        "max_ms": 183.22,
+        "p95_ms": 183.22
+      }
+    },
+    "ml_repo": {
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 1.0,
+      "relevance_proxy_score": 1.0,
+      "latency": {
+        "count": 1,
+        "avg_ms": 251.5,
+        "min_ms": 251.5,
+        "max_ms": 251.5,
+        "p95_ms": 251.5
+      }
+    }
+  },
+  "failures": [
+    {
+      "name": "setup_local_run",
+      "category": "small_python_app",
+      "mode": "onboarding",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    },
+    {
+      "name": "architecture_overview",
+      "category": "small_python_app",
+      "mode": "onboarding",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    },
+    {
+      "name": "api_health_endpoint",
+      "category": "api_service",
+      "mode": "onboarding",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    },
+    {
+      "name": "debug_trace_flow",
+      "category": "api_service",
+      "mode": "debug",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    },
+    {
+      "name": "deployment_artifacts",
+      "category": "infra_or_devops_repo",
+      "mode": "release",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    },
+    {
+      "name": "release_summary",
+      "category": "infra_or_devops_repo",
+      "mode": "release",
+      "error_code": "llm_missing_api_key",
+      "error_message": "LLM answer generation requires GEMINI_API_KEY.",
+      "failure_reason": "LLM answer generation requires GEMINI_API_KEY."
+    }
+  ]
+}

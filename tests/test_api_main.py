@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 from app.api import main as api_main
-from app.generation.answer_service import AnswerServiceUnavailableError
+from app.core.errors import IngestionLimitError
 from app.ingestion.pipeline import build_collection_name
 
 
@@ -16,11 +16,18 @@ def test_ask_endpoint_preserves_existing_response_fields(monkeypatch):
             "answer": "Use uvicorn.",
             "citations": ["README.md:12-28"],
             "confidence": "high",
+            "outcome": "answered",
+            "error_code": None,
+            "error_message": None,
+            "retrieval_diagnostics": {"matched_intents": ["setup"]},
             "trace_summary": {
                 "timestamp": "2026-03-12T12:00:00+00:00",
                 "request_id": "req-123",
+                "collection_name": "repo_chunks",
                 "outcome": "answered",
                 "confidence": "high",
+                "error_code": None,
+                "error_message": None,
                 "request_latency_ms": 12.5,
                 "retrieval_latency_ms": 4.1,
                 "chunks_retrieved_count": 5,
@@ -51,7 +58,9 @@ def test_ask_endpoint_preserves_existing_response_fields(monkeypatch):
     assert payload["answer"] == "Use uvicorn."
     assert payload["citations"] == ["README.md:12-28"]
     assert payload["confidence"] == "high"
+    assert payload["outcome"] == "answered"
     assert payload["trace_summary"]["request_id"] == "req-123"
+    assert payload["retrieval_diagnostics"]["matched_intents"] == ["setup"]
 
 
 def test_health_endpoint_returns_ok():
@@ -63,28 +72,26 @@ def test_health_endpoint_returns_ok():
     assert response.json() == {"status": "ok"}
 
 
-def test_ask_endpoint_returns_503_for_unavailable_answer_service(monkeypatch):
-    """The ask endpoint should return a clean 503 for retrieval dependency failures."""
+def test_ingest_endpoint_returns_structured_limit_errors(monkeypatch):
+    """Ingest failures should surface structured error codes and messages."""
     monkeypatch.setattr(
         api_main,
-        "answer_question",
-        lambda query, collection_name="repo_chunks", mode="onboarding": (_ for _ in ()).throw(
-            AnswerServiceUnavailableError("service unavailable")
+        "ingest_repository",
+        lambda repo_url: (_ for _ in ()).throw(
+            IngestionLimitError(
+                "too many files",
+                error_code="ingestion_no_supported_files",
+                diagnostics={"selected_files": 0},
+            )
         ),
     )
 
     with TestClient(api_main.app) as client:
-        response = client.post(
-            "/ask",
-            json={
-                "query": "How do I run this project?",
-                "collection_name": "repo_chunks",
-                "mode": "onboarding",
-            },
-        )
+        response = client.post("/ingest", json={"repo_url": "https://github.com/example/demo"})
 
-    assert response.status_code == 503
-    assert response.json()["detail"] == "service unavailable"
+    assert response.status_code == 422
+    assert response.json()["detail"]["error_code"] == "ingestion_no_supported_files"
+    assert response.json()["detail"]["error_message"] == "too many files"
 
 
 def test_ingest_and_ask_use_the_same_repo_specific_collection(monkeypatch):
@@ -113,11 +120,18 @@ def test_ingest_and_ask_use_the_same_repo_specific_collection(monkeypatch):
             "answer": "Use docker compose up --build.",
             "citations": ["README.md:12-28"],
             "confidence": "high",
+            "outcome": "answered",
+            "error_code": None,
+            "error_message": None,
+            "retrieval_diagnostics": {"matched_intents": ["setup"], "raw_result_count": 3},
             "trace_summary": {
                 "timestamp": "2026-03-12T12:00:00+00:00",
                 "request_id": "req-456",
+                "collection_name": expected_collection_name,
                 "outcome": "answered",
                 "confidence": "high",
+                "error_code": None,
+                "error_message": None,
                 "request_latency_ms": 10.0,
                 "retrieval_latency_ms": 3.5,
                 "chunks_retrieved_count": 3,

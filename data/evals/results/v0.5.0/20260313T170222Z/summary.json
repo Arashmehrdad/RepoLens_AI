@@ -1,0 +1,206 @@
+{
+  "version": "v0.5.0",
+  "timestamp": "20260313T170222Z",
+  "total_cases": 10,
+  "passed_cases": 4,
+  "pass_rate": 0.4,
+  "refusal_correctness": 0.8,
+  "citation_correctness": 0.5,
+  "relevance_proxy_score": 0.733,
+  "latency": {
+    "count": 10,
+    "avg_ms": 3371.03,
+    "min_ms": 900.65,
+    "max_ms": 6932.07,
+    "p95_ms": 6932.07
+  },
+  "per_mode": {
+    "onboarding": {
+      "total": 6,
+      "passed": 3,
+      "pass_rate": 0.5,
+      "refusal_correctness": 0.667,
+      "citation_correctness": 0.667,
+      "relevance_proxy_score": 0.68,
+      "latency": {
+        "count": 6,
+        "avg_ms": 2850.68,
+        "min_ms": 900.65,
+        "max_ms": 5332.34,
+        "p95_ms": 5332.34
+      }
+    },
+    "debug": {
+      "total": 2,
+      "passed": 1,
+      "pass_rate": 0.5,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.5,
+      "relevance_proxy_score": 0.875,
+      "latency": {
+        "count": 2,
+        "avg_ms": 4589.78,
+        "min_ms": 2247.49,
+        "max_ms": 6932.07,
+        "p95_ms": 6932.07
+      }
+    },
+    "release": {
+      "total": 2,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.0,
+      "relevance_proxy_score": 0.75,
+      "latency": {
+        "count": 2,
+        "avg_ms": 3713.32,
+        "min_ms": 3460.15,
+        "max_ms": 3966.49,
+        "p95_ms": 3966.49
+      }
+    }
+  },
+  "per_category": {
+    "small_python_app": {
+      "total": 3,
+      "passed": 2,
+      "pass_rate": 0.667,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.667,
+      "relevance_proxy_score": 0.917,
+      "latency": {
+        "count": 3,
+        "avg_ms": 2892.08,
+        "min_ms": 900.65,
+        "max_ms": 4090.43,
+        "p95_ms": 4090.43
+      }
+    },
+    "api_service": {
+      "total": 2,
+      "passed": 1,
+      "pass_rate": 0.5,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.5,
+      "relevance_proxy_score": 0.875,
+      "latency": {
+        "count": 2,
+        "avg_ms": 6132.2,
+        "min_ms": 5332.34,
+        "max_ms": 6932.07,
+        "p95_ms": 6932.07
+      }
+    },
+    "frontend_or_ui_repo": {
+      "total": 1,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 0.0,
+      "citation_correctness": 0.0,
+      "relevance_proxy_score": 0.0,
+      "latency": {
+        "count": 1,
+        "avg_ms": 929.21,
+        "min_ms": 929.21,
+        "max_ms": 929.21,
+        "p95_ms": 929.21
+      }
+    },
+    "infra_or_devops_repo": {
+      "total": 2,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 0.0,
+      "relevance_proxy_score": 0.75,
+      "latency": {
+        "count": 2,
+        "avg_ms": 3713.32,
+        "min_ms": 3460.15,
+        "max_ms": 3966.49,
+        "p95_ms": 3966.49
+      }
+    },
+    "noisy_large_repo": {
+      "total": 1,
+      "passed": 1,
+      "pass_rate": 1.0,
+      "refusal_correctness": 1.0,
+      "citation_correctness": 1.0,
+      "relevance_proxy_score": 1.0,
+      "latency": {
+        "count": 1,
+        "avg_ms": 2247.49,
+        "min_ms": 2247.49,
+        "max_ms": 2247.49,
+        "p95_ms": 2247.49
+      }
+    },
+    "ml_repo": {
+      "total": 1,
+      "passed": 0,
+      "pass_rate": 0.0,
+      "refusal_correctness": 0.0,
+      "citation_correctness": 1.0,
+      "relevance_proxy_score": 0.333,
+      "latency": {
+        "count": 1,
+        "avg_ms": 2166.29,
+        "min_ms": 2166.29,
+        "max_ms": 2166.29,
+        "p95_ms": 2166.29
+      }
+    }
+  },
+  "failures": [
+    {
+      "name": "architecture_overview",
+      "category": "small_python_app",
+      "mode": "onboarding",
+      "error_code": "llm_unusable_response",
+      "error_message": "LLM output was not safely grounded enough to return directly.",
+      "failure_reason": "LLM output was not safely grounded enough to return directly."
+    },
+    {
+      "name": "debug_trace_flow",
+      "category": "api_service",
+      "mode": "debug",
+      "error_code": null,
+      "error_message": null,
+      "failure_reason": "refusal/citation/confidence mismatch"
+    },
+    {
+      "name": "ui_api_base_url",
+      "category": "frontend_or_ui_repo",
+      "mode": "onboarding",
+      "error_code": null,
+      "error_message": null,
+      "failure_reason": "refusal/citation/confidence mismatch"
+    },
+    {
+      "name": "deployment_artifacts",
+      "category": "infra_or_devops_repo",
+      "mode": "release",
+      "error_code": null,
+      "error_message": null,
+      "failure_reason": "refusal/citation/confidence mismatch"
+    },
+    {
+      "name": "release_summary",
+      "category": "infra_or_devops_repo",
+      "mode": "release",
+      "error_code": "llm_unusable_response",
+      "error_message": "LLM output was not safely grounded enough to return directly.",
+      "failure_reason": "LLM output was not safely grounded enough to return directly."
+    },
+    {
+      "name": "ml_training_refusal",
+      "category": "ml_repo",
+      "mode": "onboarding",
+      "error_code": "llm_invocation_failed",
+      "error_message": "LLM answer generation failed.",
+      "failure_reason": "LLM answer generation failed."
+    }
+  ]
+}

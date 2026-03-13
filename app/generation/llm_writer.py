@@ -1,10 +1,11 @@
 """LLM-backed answer writing helpers."""
 
+import importlib
 import os
 
 from dotenv import load_dotenv
-from google import genai
 
+from app.core.errors import LLMDependencyError, LLMInvocationError
 from app.generation.prompts import build_mode_prompt
 
 load_dotenv()
@@ -39,20 +40,49 @@ def _build_evidence_block(item: dict) -> str:
     return "\n".join(context_lines)
 
 
+def _get_genai_client():
+    """Return a configured Gemini client or raise a structured dependency error."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise LLMDependencyError(
+            "LLM answer generation requires GEMINI_API_KEY.",
+            error_code="llm_missing_api_key",
+            diagnostics={"missing_env": "GEMINI_API_KEY"},
+        )
+
+    try:
+        genai_module = importlib.import_module("google.genai")
+    except ImportError as exc:
+        raise LLMDependencyError(
+            "LLM answer generation requires the google-genai package.",
+            error_code="llm_dependency_missing",
+            diagnostics={"missing_dependency": "google-genai"},
+        ) from exc
+
+    return genai_module.Client(api_key=api_key)
+
+
 def write_grounded_answer(
     query: str,
     retrieved_chunks: list[dict],
     mode: str = "onboarding",
 ) -> str:
     """Generate an answer grounded in the highest-priority retrieved chunks."""
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    client = _get_genai_client()
     evidence_blocks = [_build_evidence_block(item) for item in retrieved_chunks[:3]]
     evidence_text = "\n\n---\n\n".join(evidence_blocks)
     prompt = build_mode_prompt(mode=mode, query=query, evidence_text=evidence_text)
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-    )
+    try:
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt,
+        )
+    except Exception as exc:  # pylint: disable=broad-except
+        raise LLMInvocationError(
+            "LLM answer generation failed.",
+            error_code="llm_invocation_failed",
+            diagnostics={"model": MODEL_NAME, "reason": str(exc)},
+        ) from exc
 
     return response.text.strip()

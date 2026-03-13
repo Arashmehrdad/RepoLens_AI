@@ -10,8 +10,11 @@ TRACE_FILE = LOGS_DIR / "traces.jsonl"
 TRACE_SUMMARY_FIELDS = (
     "timestamp",
     "request_id",
+    "collection_name",
     "outcome",
     "confidence",
+    "error_code",
+    "error_message",
     "request_latency_ms",
     "retrieval_latency_ms",
     "chunks_retrieved_count",

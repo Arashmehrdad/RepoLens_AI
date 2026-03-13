@@ -30,6 +30,10 @@ class FakeClient:
         self.calls.append(kwargs)
         return kwargs
 
+    def delete_collection(self, name: str):
+        """Record collection deletion requests for assertions."""
+        self.calls.append({"delete_collection": name})
+
 
 def test_get_embedding_function_uses_repo_local_cache(monkeypatch, tmp_path):
     """Embedding downloads should be redirected into the configured repo cache."""
@@ -68,3 +72,20 @@ def test_get_vector_collection_uses_configured_client_and_embedding_function(
     assert collection["embedding_function"].DOWNLOAD_PATH == str(
         Path(tmp_path / "model-cache" / "all-MiniLM-L6-v2")
     )
+
+
+def test_reset_vector_collection_uses_configured_client(monkeypatch, tmp_path):
+    """Resetting a collection should delete it through the configured client."""
+    captured = {}
+
+    def build_client(path: str):
+        client = FakeClient(path=path)
+        captured["client"] = client
+        return client
+
+    monkeypatch.setattr(vector_store, "VECTOR_STORE_DIR", tmp_path / "vector-store")
+    monkeypatch.setattr(vector_store.chromadb, "PersistentClient", build_client)
+
+    vector_store.reset_vector_collection("demo")
+
+    assert captured["client"].calls == [{"delete_collection": "demo"}]

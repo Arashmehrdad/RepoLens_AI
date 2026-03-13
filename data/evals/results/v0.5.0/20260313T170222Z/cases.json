@@ -1,0 +1,1215 @@
+[
+  {
+    "name": "setup_local_run",
+    "category": "small_python_app",
+    "query": "How do I run this project locally?",
+    "mode": "onboarding",
+    "notes": "Baseline onboarding question that should cite setup docs and the API entrypoint.",
+    "should_refuse": false,
+    "expected_citations": [
+      "README.md",
+      "app/api/main.py"
+    ],
+    "answer": "You can run this project locally in two ways:\n\n1.  **Manual run:**\n    *   Start the API in one terminal using:\n        ```powershell\n        uvicorn app.api.main:app --host 0.0.0.0 --port 8000\n        ```\n    *   Start the UI in a second terminal using:\n        ```powershell\n        streamlit run app/ui/home.py\n        ```\n    *   Useful local URLs will be:\n        *   API docs: `http://127.0.0.1:8000/docs`\n        *   API health: `http://127.0.0.1:8000/health`\n        *   UI: `http://127.0.0.1:8501`\n\n2.  **Local container run with Docker:**\n    *   Use the command:\n        ```powershell\n        docker compose up --build\n        ```\n    *   This will start the API on port `8000` and the Streamlit UI on port `8501`.",
+    "citations": [
+      "README.md:94-145",
+      "app/api/main.py:1-41",
+      "README.md:197-250"
+    ],
+    "confidence": "high",
+    "outcome": "answered",
+    "latency_ms": 4090.43,
+    "refusal_ok": true,
+    "citation_ok": true,
+    "confidence_ok": true,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:26.231649+00:00",
+      "request_id": "6fc6eb260aa7496eab0329b64fd7a6fc",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "answered",
+      "confidence": "high",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 4090.43,
+      "retrieval_latency_ms": 465.22,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 4,
+      "citations_count": 3,
+      "top_paths": [
+        "README.md",
+        "app/api/main.py"
+      ],
+      "top_citations": [
+        "README.md:94-145",
+        "app/api/main.py:1-41",
+        "README.md:197-250"
+      ],
+      "query_intents": [
+        "setup"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "setup"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 2,
+      "test_file_count": 7,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "README.md",
+          "chunk_index": 4,
+          "rerank_score": 7.932,
+          "distance": 1.6176310777664185,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 0,
+          "rerank_score": 6.9238,
+          "distance": 1.6754215955734253,
+          "flags": []
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 7,
+          "rerank_score": 6.4596,
+          "distance": 1.441687822341919,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 8,
+          "rerank_score": 6.4423,
+          "distance": 1.5488739013671875,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 3,
+          "rerank_score": 6.421,
+          "distance": 1.6950836181640625,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 1,
+        "output_count": 4
+      }
+    },
+    "relevance_proxy_score": 1.0,
+    "passed": true
+  },
+  {
+    "name": "architecture_overview",
+    "category": "small_python_app",
+    "query": "How is this project structured?",
+    "mode": "onboarding",
+    "notes": "Architecture answers should rely on README plus retrieval implementation evidence.",
+    "should_refuse": false,
+    "expected_citations": [
+      "README.md",
+      "app/retrieval/retriever.py"
+    ],
+    "answer": "I found relevant repository evidence, but the model summary was unavailable. Here are the strongest grounded excerpts:\n- README.md:1-17: # RepoLens AI RepoLens AI is a repository question-answering assistant that ingests a codebase, retrieves evidence with metadata-aware reranking, answers with line-aware citations, and refuses when the evidence is...\n- README.md:23-47: aware reranking for setup, architecture, debug, release, and deployment questions - cleaner retrieval post-processing with smarter dedupe and conditional test-file inclusion ## Architecture And Flow 1. The API...\n- README.md:12-26: or a question - answering with grounded, line-aware citations - logging measurable request behavior for inspection - refusing when it cannot support an answer with valid evidence ## What v0.4.0 Adds -...",
+    "citations": [
+      "README.md:1-17",
+      "README.md:23-47",
+      "README.md:12-26"
+    ],
+    "confidence": "medium",
+    "outcome": "fallback_answered",
+    "latency_ms": 3685.17,
+    "refusal_ok": true,
+    "citation_ok": false,
+    "confidence_ok": true,
+    "error_code": "llm_unusable_response",
+    "error_message": "LLM output was not safely grounded enough to return directly.",
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:29.917406+00:00",
+      "request_id": "aa8514deb38546cdbde2485f0d5e4c77",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "fallback_answered",
+      "confidence": "medium",
+      "error_code": "llm_unusable_response",
+      "error_message": "LLM output was not safely grounded enough to return directly.",
+      "request_latency_ms": 3685.17,
+      "retrieval_latency_ms": 933.19,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 3,
+      "citations_count": 3,
+      "top_paths": [
+        "README.md"
+      ],
+      "top_citations": [
+        "README.md:1-17",
+        "README.md:23-47",
+        "README.md:12-26"
+      ],
+      "query_intents": [
+        "architecture"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "architecture"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 1,
+      "test_file_count": 8,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "README.md",
+          "chunk_index": 0,
+          "rerank_score": 5.8927,
+          "distance": 1.5462355613708496,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 2,
+          "rerank_score": 5.7606,
+          "distance": 1.4355043172836304,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 1,
+          "rerank_score": 5.7333,
+          "distance": 1.608613133430481,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 6,
+          "rerank_score": 5.7303,
+          "distance": 1.6298162937164307,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 9,
+          "rerank_score": 5.7272,
+          "distance": 1.6512460708618164,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 2,
+        "output_count": 3
+      }
+    },
+    "relevance_proxy_score": 0.75,
+    "passed": false,
+    "failure_reason": "LLM output was not safely grounded enough to return directly."
+  },
+  {
+    "name": "api_health_endpoint",
+    "category": "api_service",
+    "query": "What health endpoint does the API expose?",
+    "mode": "onboarding",
+    "notes": "Simple API-service question that should resolve directly from FastAPI routes.",
+    "should_refuse": false,
+    "expected_citations": [
+      "app/api/main.py"
+    ],
+    "answer": "The API exposes a health endpoint at `/health` which returns `{\"status\": \"ok\"}`.\nAdditionally, the root endpoint `/` also provides a basic health response returning `{\"message\": \"RepoLens AI is running\"}`.",
+    "citations": [
+      "app/api/main.py:1-41",
+      "app/api/schemas.py:1-40",
+      "app/ui/home.py:1-35"
+    ],
+    "confidence": "high",
+    "outcome": "answered",
+    "latency_ms": 5332.34,
+    "refusal_ok": true,
+    "citation_ok": true,
+    "confidence_ok": true,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:35.251616+00:00",
+      "request_id": "873eac528b0a4fa6808c855ac5edbf7d",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "answered",
+      "confidence": "high",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 5332.34,
+      "retrieval_latency_ms": 979.75,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 4,
+      "citations_count": 3,
+      "top_paths": [
+        "app/api/main.py",
+        "app/api/schemas.py",
+        "app/ui/home.py"
+      ],
+      "top_citations": [
+        "app/api/main.py:1-41",
+        "app/api/schemas.py:1-40",
+        "app/ui/home.py:1-35"
+      ],
+      "query_intents": [
+        "api"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "api"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 3,
+      "test_file_count": 11,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 0,
+          "rerank_score": 9.5568,
+          "distance": 1.4583662748336792,
+          "flags": []
+        },
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 1,
+          "rerank_score": 9.4202,
+          "distance": 1.3798266649246216,
+          "flags": []
+        },
+        {
+          "path": "app/api/schemas.py",
+          "chunk_index": 0,
+          "rerank_score": 7.3635,
+          "distance": 1.418354868888855,
+          "flags": []
+        },
+        {
+          "path": "app/ui/home.py",
+          "chunk_index": 0,
+          "rerank_score": 1.7626,
+          "distance": 1.4237372875213623,
+          "flags": []
+        },
+        {
+          "path": "app/core/tracing.py",
+          "chunk_index": 0,
+          "rerank_score": 1.7466,
+          "distance": 1.521167516708374,
+          "flags": [
+            "is_ci_file"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 1,
+        "output_count": 4
+      }
+    },
+    "relevance_proxy_score": 1.0,
+    "passed": true
+  },
+  {
+    "name": "debug_trace_flow",
+    "category": "api_service",
+    "query": "Where should I look to inspect ask request tracing?",
+    "mode": "debug",
+    "notes": "Debug mode should surface tracing and answer pipeline code.",
+    "should_refuse": false,
+    "expected_citations": [
+      "app/core/tracing.py",
+      "app/generation/answer_service.py"
+    ],
+    "answer": "To inspect `ask` request tracing, you should look at the `trace_summary` field within the `QuestionResponse` object returned by the `/ask` endpoint.\n\nKey areas to investigate:\n*   **`app/api/main.py`**: The `ask_question` function, which handles the `/ask` endpoint, retrieves the `trace_summary` from the result of the `answer_question` call and includes it in the `QuestionResponse`.\n*   **`app/api/schemas.py`**: This file defines the `QuestionResponse` model, which includes the `trace_summary` field. It also defines the `TraceSummary` model itself, detailing the structure and types of tracing information collected (e.g., `timestamp`, `request_id`, `outcome`, `confidence`, `request_latency_ms`, `retrieval_latency_ms`, `chunks_retrieved_count`).",
+    "citations": [
+      "app/api/main.py:54-85",
+      "app/api/schemas.py:1-40",
+      "app/api/schemas.py:34-57"
+    ],
+    "confidence": "high",
+    "outcome": "answered",
+    "latency_ms": 6932.07,
+    "refusal_ok": true,
+    "citation_ok": false,
+    "confidence_ok": true,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:42.184437+00:00",
+      "request_id": "daff430d7cf6400f9af54e17c8aa85af",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "answered",
+      "confidence": "high",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 6932.07,
+      "retrieval_latency_ms": 875.4,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 5,
+      "citations_count": 3,
+      "top_paths": [
+        "app/api/main.py",
+        "app/api/schemas.py",
+        "tests/test_api_main.py"
+      ],
+      "top_citations": [
+        "app/api/main.py:54-85",
+        "app/api/schemas.py:1-40",
+        "app/api/schemas.py:34-57"
+      ],
+      "query_intents": [
+        "api",
+        "debug",
+        "deployment"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "api",
+        "debug",
+        "deployment"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 5,
+      "test_file_count": 10,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 2,
+          "rerank_score": 20.2236,
+          "distance": 1.3609259128570557,
+          "flags": []
+        },
+        {
+          "path": "app/api/schemas.py",
+          "chunk_index": 0,
+          "rerank_score": 13.5072,
+          "distance": 1.1874101161956787,
+          "flags": []
+        },
+        {
+          "path": "app/api/schemas.py",
+          "chunk_index": 1,
+          "rerank_score": 13.3249,
+          "distance": 1.3537098169326782,
+          "flags": []
+        },
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 3,
+          "rerank_score": 10.4058,
+          "distance": 1.464085578918457,
+          "flags": [
+            "is_test_file"
+          ]
+        },
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 6,
+          "rerank_score": 10.4056,
+          "distance": 1.465592861175537,
+          "flags": [
+            "is_test_file"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 0,
+        "output_count": 5
+      }
+    },
+    "relevance_proxy_score": 0.75,
+    "passed": false,
+    "failure_reason": "refusal/citation/confidence mismatch"
+  },
+  {
+    "name": "ui_api_base_url",
+    "category": "frontend_or_ui_repo",
+    "query": "How does the UI choose the API base URL?",
+    "mode": "onboarding",
+    "notes": "UI questions should cite Streamlit code instead of only README guidance.",
+    "should_refuse": false,
+    "expected_citations": [
+      "app/ui/home.py"
+    ],
+    "answer": "I do not have enough evidence in the repository to answer that confidently.",
+    "citations": [],
+    "confidence": "low",
+    "outcome": "refused",
+    "latency_ms": 929.21,
+    "refusal_ok": false,
+    "citation_ok": false,
+    "confidence_ok": false,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:43.114973+00:00",
+      "request_id": "0b937cdc9ed541aa831c3196faf5b3ce",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "refused",
+      "confidence": "low",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 929.21,
+      "retrieval_latency_ms": 929.05,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 3,
+      "citations_count": 0,
+      "top_paths": [
+        "app/api/main.py",
+        "app/api/schemas.py",
+        "app/ui/home.py"
+      ],
+      "top_citations": [],
+      "query_intents": [
+        "api",
+        "ui"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "api",
+        "ui"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 0,
+      "test_file_count": 8,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 0,
+          "rerank_score": 9.5379,
+          "distance": 1.5778636932373047,
+          "flags": []
+        },
+        {
+          "path": "app/api/schemas.py",
+          "chunk_index": 0,
+          "rerank_score": 7.3268,
+          "distance": 1.65378999710083,
+          "flags": []
+        },
+        {
+          "path": "app/ui/home.py",
+          "chunk_index": 0,
+          "rerank_score": 5.5414,
+          "distance": 1.5552046298980713,
+          "flags": []
+        },
+        {
+          "path": "app/ui/home.py",
+          "chunk_index": 3,
+          "rerank_score": 5.3792,
+          "distance": 1.6374106407165527,
+          "flags": []
+        },
+        {
+          "path": "app/ui/home.py",
+          "chunk_index": 1,
+          "rerank_score": 5.3773,
+          "distance": 1.650614619255066,
+          "flags": []
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 2,
+        "output_count": 3
+      }
+    },
+    "relevance_proxy_score": 0.0,
+    "passed": false,
+    "failure_reason": "refusal/citation/confidence mismatch"
+  },
+  {
+    "name": "deployment_artifacts",
+    "category": "infra_or_devops_repo",
+    "query": "What deployment artifacts are available for this project?",
+    "mode": "release",
+    "notes": "Release mode should prioritize container and deployment assets over generic code.",
+    "should_refuse": false,
+    "expected_citations": [
+      "docker-compose.yml",
+      "Dockerfile.api",
+      "Dockerfile.ui"
+    ],
+    "answer": "A Docker image is available for deployment of the API service, built using the `Dockerfile.api`. This image contains the Python application and its dependencies.",
+    "citations": [
+      "Dockerfile.api:1-15",
+      "README.md:136-176",
+      "README.md:282-296"
+    ],
+    "confidence": "high",
+    "outcome": "answered",
+    "latency_ms": 3460.15,
+    "refusal_ok": true,
+    "citation_ok": false,
+    "confidence_ok": true,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:46.576725+00:00",
+      "request_id": "e4c1d54c878847c9a0343e4816b14d25",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "answered",
+      "confidence": "high",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 3460.15,
+      "retrieval_latency_ms": 939.54,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 4,
+      "citations_count": 3,
+      "top_paths": [
+        "Dockerfile.api",
+        "README.md"
+      ],
+      "top_citations": [
+        "Dockerfile.api:1-15",
+        "README.md:136-176",
+        "README.md:282-296"
+      ],
+      "query_intents": [
+        "deployment",
+        "release"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "deployment",
+        "release"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 0,
+      "test_file_count": 5,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "Dockerfile.api",
+          "chunk_index": 0,
+          "rerank_score": 11.1391,
+          "distance": 1.5697373151779175,
+          "flags": [
+            "is_deployment_file"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 5,
+          "rerank_score": 5.4604,
+          "distance": 1.436578631401062,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 9,
+          "rerank_score": 5.1799,
+          "distance": 1.3263088464736938,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 7,
+          "rerank_score": 5.1701,
+          "distance": 1.380260944366455,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 0,
+          "rerank_score": 3.0314,
+          "distance": 1.318037509918213,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 1,
+        "output_count": 4
+      }
+    },
+    "relevance_proxy_score": 0.75,
+    "passed": false,
+    "failure_reason": "refusal/citation/confidence mismatch"
+  },
+  {
+    "name": "release_summary",
+    "category": "infra_or_devops_repo",
+    "query": "What changed in v0.5.0?",
+    "mode": "release",
+    "notes": "Release mode should combine docs and implementation evidence for shipped features.",
+    "should_refuse": false,
+    "expected_citations": [
+      "README.md",
+      "app/retrieval/retriever.py",
+      "app/core/tracing.py"
+    ],
+    "answer": "I found relevant repository evidence, but the model summary was unavailable. Here are the strongest grounded excerpts:\n- README.md:282-296: with timings and retrieval diagnostics - stronger release-mode evidence selection - improved intent-aware reranking and dedupe behavior - line-aware citations preserved end-to-end ## Current Limits - repository...\n- README.md:1-17: # RepoLens AI RepoLens AI is a repository question-answering assistant that ingests a codebase, retrieves evidence with metadata-aware reranking, answers with line-aware citations, and refuses when the evidence is...\n- README.md:136-176: exes and traces to survive restarts Recommended low-friction options: - Render - Railway - Fly.io - any container host that supports two services or a compose-style setup Important first-run note: - the default...",
+    "citations": [
+      "README.md:282-296",
+      "README.md:1-17",
+      "README.md:136-176"
+    ],
+    "confidence": "medium",
+    "outcome": "fallback_answered",
+    "latency_ms": 3966.49,
+    "refusal_ok": true,
+    "citation_ok": false,
+    "confidence_ok": true,
+    "error_code": "llm_unusable_response",
+    "error_message": "LLM output was not safely grounded enough to return directly.",
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:50.544139+00:00",
+      "request_id": "c5391143e2d74bb2af01ac49b6cc8b22",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "fallback_answered",
+      "confidence": "medium",
+      "error_code": "llm_unusable_response",
+      "error_message": "LLM output was not safely grounded enough to return directly.",
+      "request_latency_ms": 3966.49,
+      "retrieval_latency_ms": 891.83,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 3,
+      "citations_count": 3,
+      "top_paths": [
+        "README.md"
+      ],
+      "top_citations": [
+        "README.md:282-296",
+        "README.md:1-17",
+        "README.md:136-176"
+      ],
+      "query_intents": [
+        "release"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "release"
+      ],
+      "query_versions": [
+        "v0.5.0"
+      ],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 0,
+      "test_file_count": 7,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "README.md",
+          "chunk_index": 9,
+          "rerank_score": 4.8067,
+          "distance": 1.8037046194076538,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 0,
+          "rerank_score": 2.7244,
+          "distance": 1.3565263748168945,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 5,
+          "rerank_score": 2.7154,
+          "distance": 1.737033486366272,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 6,
+          "rerank_score": 2.5417,
+          "distance": 1.5531325340270996,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 1,
+          "rerank_score": 2.5257,
+          "distance": 1.6619751453399658,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 2,
+        "output_count": 3
+      }
+    },
+    "relevance_proxy_score": 0.75,
+    "passed": false,
+    "failure_reason": "LLM output was not safely grounded enough to return directly."
+  },
+  {
+    "name": "large_repo_test_signal",
+    "category": "noisy_large_repo",
+    "query": "Which tests verify the ask endpoint response shape?",
+    "mode": "debug",
+    "notes": "Debug-style queries should allow test files to surface in noisier repositories.",
+    "should_refuse": false,
+    "expected_citations": [
+      "tests/test_api_main.py"
+    ],
+    "answer": "I found relevant repository evidence, but the model summary was unavailable. Here are the strongest grounded excerpts:\n- tests/test_api_main.py:58-87: ld return an OK status.\"\"\" with TestClient(api_main.app) as client: response = client.get(\"/health\") assert response.status_code == 200 assert response.json() == {\"status\": \"ok\"} def...\n- tests/test_api_main.py:30-63: \"top_citations\": [\"README.md:12-28\"], \"query_intents\": [\"setup\"], \"retrieval_fetch_count\": 12, \"raw_results_count\": 5, }, }, ) with TestClient(api_main.app) as client: response = client.post( \"/ask\", json={ \"query\":...\n- app/api/main.py:54-85: ction_name\"], file_count=result[\"file_count\"], document_count=result[\"document_count\"], chunk_count=result[\"chunk_count\"], indexed_count=result[\"indexed_count\"], ) @app.post(\"/ask\", response_model=QuestionResponse)...",
+    "citations": [
+      "tests/test_api_main.py:58-87",
+      "tests/test_api_main.py:30-63",
+      "app/api/main.py:54-85"
+    ],
+    "confidence": "medium",
+    "outcome": "fallback_answered",
+    "latency_ms": 2247.49,
+    "refusal_ok": true,
+    "citation_ok": true,
+    "confidence_ok": true,
+    "error_code": "llm_invocation_failed",
+    "error_message": "LLM answer generation failed.",
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:52.793572+00:00",
+      "request_id": "eef7e0f5db6d4051bb4b174863ef1323",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "fallback_answered",
+      "confidence": "medium",
+      "error_code": "llm_invocation_failed",
+      "error_message": "LLM answer generation failed.",
+      "request_latency_ms": 2247.49,
+      "retrieval_latency_ms": 941.51,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 3,
+      "citations_count": 3,
+      "top_paths": [
+        "tests/test_api_main.py",
+        "app/api/main.py"
+      ],
+      "top_citations": [
+        "tests/test_api_main.py:58-87",
+        "tests/test_api_main.py:30-63",
+        "app/api/main.py:54-85"
+      ],
+      "query_intents": [
+        "api",
+        "debug",
+        "testing"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "api",
+        "debug",
+        "testing"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 2,
+      "test_file_count": 18,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 3,
+          "rerank_score": 16.8622,
+          "distance": 1.163575291633606,
+          "flags": [
+            "is_test_file"
+          ]
+        },
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 2,
+          "rerank_score": 16.8273,
+          "distance": 1.3401459455490112,
+          "flags": [
+            "is_test_file"
+          ]
+        },
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 2,
+          "rerank_score": 16.5124,
+          "distance": 1.4246326684951782,
+          "flags": []
+        },
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 0,
+          "rerank_score": 15.6132,
+          "distance": 1.1590856313705444,
+          "flags": [
+            "is_test_file"
+          ]
+        },
+        {
+          "path": "tests/test_api_main.py",
+          "chunk_index": 1,
+          "rerank_score": 15.4284,
+          "distance": 1.3345201015472412,
+          "flags": [
+            "is_test_file"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 2,
+        "output_count": 3
+      }
+    },
+    "relevance_proxy_score": 1.0,
+    "passed": true
+  },
+  {
+    "name": "ml_training_refusal",
+    "category": "ml_repo",
+    "query": "Where is the model training loop and fine-tuning pipeline?",
+    "mode": "onboarding",
+    "notes": "The current repo is not an ML training codebase, so the assistant should refuse cleanly.",
+    "should_refuse": true,
+    "expected_citations": [],
+    "answer": "I found relevant repository evidence, but the model summary was unavailable. Here are the strongest grounded excerpts:\n- data/eval_results.json:1-30: { \"passed\": 0, \"total\": 6, \"results\": [ { \"name\": \"setup_local_run\", \"query\": \"How do I run this project locally?\", \"mode\": \"onboarding\", \"error\": \"Question answering requires a ready vector index and an embedding...\n- README.md:1-17: # RepoLens AI RepoLens AI is a repository question-answering assistant that ingests a codebase, retrieves evidence with metadata-aware reranking, answers with line-aware citations, and refuses when the evidence is...\n- README.md:136-176: exes and traces to survive restarts Recommended low-friction options: - Render - Railway - Fly.io - any container host that supports two services or a compose-style setup Important first-run note: - the default...",
+    "citations": [
+      "data/eval_results.json:1-30",
+      "README.md:1-17",
+      "README.md:136-176"
+    ],
+    "confidence": "medium",
+    "outcome": "fallback_answered",
+    "latency_ms": 2166.29,
+    "refusal_ok": false,
+    "citation_ok": true,
+    "confidence_ok": false,
+    "error_code": "llm_invocation_failed",
+    "error_message": "LLM answer generation failed.",
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:54.960002+00:00",
+      "request_id": "a8e17d4bd3b841358e6043289bc159ca",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "fallback_answered",
+      "confidence": "medium",
+      "error_code": "llm_invocation_failed",
+      "error_message": "LLM answer generation failed.",
+      "request_latency_ms": 2166.29,
+      "retrieval_latency_ms": 918.2,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 3,
+      "citations_count": 3,
+      "top_paths": [
+        "data/eval_results.json",
+        "README.md"
+      ],
+      "top_citations": [
+        "data/eval_results.json:1-30",
+        "README.md:1-17",
+        "README.md:136-176"
+      ],
+      "query_intents": [
+        "training"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "training"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 3,
+      "test_file_count": 8,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "data/eval_results.json",
+          "chunk_index": 0,
+          "rerank_score": 1.348,
+          "distance": 1.5124115943908691,
+          "flags": []
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 0,
+          "rerank_score": 0.7853,
+          "distance": 1.595229148864746,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 5,
+          "rerank_score": 0.668,
+          "distance": 1.3924039602279663,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 6,
+          "rerank_score": 0.6679,
+          "distance": 1.3927291631698608,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        },
+        {
+          "path": "README.md",
+          "chunk_index": 2,
+          "rerank_score": 0.649,
+          "distance": 1.5061492919921875,
+          "flags": [
+            "is_readme",
+            "is_docs_update"
+          ]
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 2,
+        "output_count": 3
+      }
+    },
+    "relevance_proxy_score": 0.333,
+    "passed": false,
+    "failure_reason": "LLM answer generation failed."
+  },
+  {
+    "name": "out_of_scope_question",
+    "category": "small_python_app",
+    "query": "What is the capital of France?",
+    "mode": "onboarding",
+    "notes": "Out-of-repo questions should refuse with low confidence.",
+    "should_refuse": true,
+    "expected_citations": [],
+    "answer": "I do not have enough evidence in the repository to answer that confidently.",
+    "citations": [],
+    "confidence": "low",
+    "outcome": "refused",
+    "latency_ms": 900.65,
+    "refusal_ok": true,
+    "citation_ok": true,
+    "confidence_ok": true,
+    "error_code": null,
+    "error_message": null,
+    "trace_summary": {
+      "timestamp": "2026-03-13T17:02:55.861817+00:00",
+      "request_id": "589a4ed5eac44817bb796ed5c265db3f",
+      "collection_name": "repo_repolens_ai",
+      "outcome": "refused",
+      "confidence": "low",
+      "error_code": null,
+      "error_message": null,
+      "request_latency_ms": 900.65,
+      "retrieval_latency_ms": 900.48,
+      "chunks_retrieved_count": 5,
+      "chunks_after_cleaning_count": 5,
+      "citations_count": 0,
+      "top_paths": [
+        "app/api/main.py",
+        "app/api/schemas.py",
+        "Dockerfile.api"
+      ],
+      "top_citations": [],
+      "query_intents": [
+        "api"
+      ],
+      "retrieval_fetch_count": 30,
+      "raw_results_count": 30
+    },
+    "retrieval_diagnostics": {
+      "matched_intents": [
+        "api"
+      ],
+      "query_versions": [],
+      "fetch_count": 30,
+      "raw_result_count": 30,
+      "release_relevant_count": 0,
+      "test_file_count": 8,
+      "example_file_count": 0,
+      "top_candidates": [
+        {
+          "path": "app/api/main.py",
+          "chunk_index": 2,
+          "rerank_score": 9.3436,
+          "distance": 1.9106130599975586,
+          "flags": []
+        },
+        {
+          "path": "app/api/schemas.py",
+          "chunk_index": 0,
+          "rerank_score": 7.2945,
+          "distance": 1.9025750160217285,
+          "flags": []
+        },
+        {
+          "path": "Dockerfile.api",
+          "chunk_index": 0,
+          "rerank_score": 2.4965,
+          "distance": 1.8863451480865479,
+          "flags": [
+            "is_deployment_file"
+          ]
+        },
+        {
+          "path": "app/core/config.py",
+          "chunk_index": 0,
+          "rerank_score": 2.4959,
+          "distance": 1.890920639038086,
+          "flags": []
+        },
+        {
+          "path": "app/core/env.py",
+          "chunk_index": 0,
+          "rerank_score": 1.7092,
+          "distance": 1.7842755317687988,
+          "flags": []
+        }
+      ],
+      "postprocess": {
+        "input_count": 5,
+        "dropped_test_files": 0,
+        "dropped_example_files": 0,
+        "dropped_duplicate_chunks": 0,
+        "dropped_duplicate_content": 0,
+        "dropped_per_file_limit": 0,
+        "output_count": 5
+      }
+    },
+    "relevance_proxy_score": 1.0,
+    "passed": true
+  }
+]

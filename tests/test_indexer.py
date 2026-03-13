@@ -23,6 +23,7 @@ class FakeCollection:
 def test_index_chunks_upserts_rich_metadata(monkeypatch):
     """Indexing should write chunk text plus reranking metadata to the store."""
     collection = FakeCollection()
+    resets = []
     chunk = {
         "content": "Run the app with uvicorn.",
         "path": "README.md",
@@ -56,11 +57,13 @@ def test_index_chunks_upserts_rich_metadata(monkeypatch):
         "is_test_file": False,
     }
 
+    monkeypatch.setattr(indexer, "reset_vector_collection", lambda name: resets.append(name))
     monkeypatch.setattr(indexer, "get_vector_collection", lambda name: collection)
 
     indexed_count = indexer.index_chunks([chunk])
 
     assert indexed_count == 1
+    assert resets == ["repo_chunks"]
     assert collection.calls[0]["ids"] == ["README.md::chunk_0"]
     assert collection.calls[0]["documents"] == ["Run the app with uvicorn."]
     assert collection.calls[0]["metadatas"][0]["is_readme"] is True

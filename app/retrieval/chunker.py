@@ -3,6 +3,8 @@
 import re
 from bisect import bisect_right
 
+from app.core.config import DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, MIN_CHUNK_CHARACTERS
+
 
 def _empty_context() -> dict:
     """Return the default section and symbol context."""
@@ -160,7 +162,28 @@ def _build_chunk_record(
         "is_docs_update": document["is_docs_update"],
         "is_architecture_doc": document["is_architecture_doc"],
         "is_test_file": document["is_test_file"],
+        "is_example_file": document.get("is_example_file", False),
+        "is_ci_file": document.get("is_ci_file", False),
+        "is_package_config": document.get("is_package_config", False),
+        "is_tutorial_doc": document.get("is_tutorial_doc", False),
     }
+
+
+def _normalize_chunk_text(text: str) -> str:
+    """Collapse whitespace for chunk deduplication and usefulness checks."""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _is_useful_chunk_text(text: str) -> bool:
+    """Return True when chunk text is substantive enough to keep."""
+    normalized = _normalize_chunk_text(text)
+    if not normalized:
+        return False
+
+    if len(normalized) >= MIN_CHUNK_CHARACTERS:
+        return True
+
+    return bool(re.search(r"[A-Za-z0-9]", normalized)) and len(normalized) >= 12
 
 
 def _build_chunk_from_offsets(
@@ -173,7 +196,7 @@ def _build_chunk_from_offsets(
     """Create a chunk record from raw file offsets."""
     text = chunk_context["text"]
     chunk_text = text[start_offset:end_offset].strip()
-    if not chunk_text:
+    if not _is_useful_chunk_text(chunk_text):
         return None
 
     start_line = _line_number_for_offset(chunk_context["line_starts"], start_offset)
@@ -195,6 +218,25 @@ def _build_chunk_from_offsets(
     )
 
 
+def _append_chunk_if_distinct(
+    document_chunks: list[dict],
+    seen_signatures: set[str],
+    chunk_record: dict | None,
+) -> bool:
+    """Append a chunk only when it is non-empty and not a near-duplicate."""
+    if chunk_record is None:
+        return False
+
+    normalized_text = _normalize_chunk_text(chunk_record["content"])
+    signature = normalized_text[:240]
+    if signature in seen_signatures:
+        return False
+
+    seen_signatures.add(signature)
+    document_chunks.append(chunk_record)
+    return True
+
+
 def _chunk_long_paragraph(
     document: dict,
     chunk_context: dict,
@@ -204,6 +246,7 @@ def _chunk_long_paragraph(
 ) -> tuple[list[dict], int]:
     """Chunk a single long paragraph with character overlap."""
     parts = []
+    seen_signatures = set()
     start = paragraph["start_offset"]
     step = max(1, chunk_settings["chunk_size"] - chunk_settings["chunk_overlap"])
     paragraph_end = paragraph["end_offset"]
@@ -217,8 +260,7 @@ def _chunk_long_paragraph(
             start_offset=start,
             end_offset=end,
         )
-        if chunk_record is not None:
-            parts.append(chunk_record)
+        if _append_chunk_if_distinct(parts, seen_signatures, chunk_record):
             chunk_index += 1
 
         if end >= paragraph_end:
@@ -240,6 +282,7 @@ def _chunk_single_document(document: dict, chunk_settings: dict) -> list[dict]:
         return []
 
     document_chunks = []
+    seen_signatures = set()
     chunk_index = 0
     current_chunk = {}
 
@@ -274,8 +317,7 @@ def _chunk_single_document(document: dict, chunk_settings: dict) -> list[dict]:
             start_offset=current_chunk["start_offset"],
             end_offset=current_chunk["end_offset"],
         )
-        if chunk_record is not None:
-            document_chunks.append(chunk_record)
+        if _append_chunk_if_distinct(document_chunks, seen_signatures, chunk_record):
             chunk_index += 1
 
         if len(paragraph_text) > chunk_settings["chunk_size"]:
@@ -306,16 +348,15 @@ def _chunk_single_document(document: dict, chunk_settings: dict) -> list[dict]:
             start_offset=current_chunk["start_offset"],
             end_offset=current_chunk["end_offset"],
         )
-        if chunk_record is not None:
-            document_chunks.append(chunk_record)
+        _append_chunk_if_distinct(document_chunks, seen_signatures, chunk_record)
 
     return document_chunks
 
 
 def chunk_documents(
     documents: list[dict],
-    chunk_size: int = 1200,
-    chunk_overlap: int = 200,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    chunk_overlap: int = DEFAULT_CHUNK_OVERLAP,
 ) -> list[dict]:
     """Chunk documents with overlap across adjacent chunk boundaries."""
     chunks = []

@@ -28,7 +28,15 @@ def test_answer_service_trace_payload_includes_latency_and_counts(monkeypatch):
             else cleaned_chunks
         ),
     )
-    monkeypatch.setattr(answer_service, "clean_retrieved_chunks", lambda chunks, query_intents=None: chunks)
+    monkeypatch.setattr(
+        answer_service,
+        "clean_retrieved_chunks",
+        lambda chunks, query_intents=None, return_diagnostics=False: (
+            (chunks, {"input_count": 1, "output_count": 1})
+            if return_diagnostics
+            else chunks
+        ),
+    )
     monkeypatch.setattr(answer_service, "write_grounded_answer", lambda query, retrieved_chunks, mode="onboarding": "Use uvicorn.")
     monkeypatch.setattr(
         answer_service,
@@ -50,4 +58,5 @@ def test_answer_service_trace_payload_includes_latency_and_counts(monkeypatch):
     assert trace_payload["chunks_after_cleaning_count"] == 1
     assert trace_payload["citations_count"] == 1
     assert trace_payload["outcome"] == "answered"
+    assert trace_payload["error_code"] is None
     assert trace_payload["retrieval_diagnostics"]["matched_intents"] == ["setup"]

@@ -8,8 +8,11 @@ class TraceSummary(BaseModel):
 
     timestamp: str | None = None
     request_id: str
+    collection_name: str | None = None
     outcome: str
     confidence: str
+    error_code: str | None = None
+    error_message: str | None = None
     request_latency_ms: float
     retrieval_latency_ms: float
     chunks_retrieved_count: int
@@ -37,7 +40,11 @@ class QuestionResponse(BaseModel):
     answer: str
     citations: list[str]
     confidence: str
+    outcome: str
+    error_code: str | None = None
+    error_message: str | None = None
     trace_summary: TraceSummary | None = None
+    retrieval_diagnostics: dict | None = None
 
 
 class IngestRequest(BaseModel):
@@ -55,3 +62,4 @@ class IngestResponse(BaseModel):
     document_count: int
     chunk_count: int
     indexed_count: int
+    ingestion_diagnostics: dict | None = None

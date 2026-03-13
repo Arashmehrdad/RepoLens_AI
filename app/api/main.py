@@ -10,9 +10,10 @@ from app.api.schemas import (
     QuestionRequest,
     QuestionResponse,
 )
+from app.core.errors import IngestionLimitError
 from app.core.env import load_environment
 from app.core.setup import ensure_directories
-from app.generation.answer_service import AnswerServiceUnavailableError, answer_question
+from app.generation.answer_service import answer_question
 from app.ingestion.pipeline import ingest_repository, resolve_collection_name
 from app.ingestion.repo_manager import RepositoryCloneError
 
@@ -26,7 +27,19 @@ async def lifespan(fastapi_app: FastAPI):
     yield
 
 
-app = FastAPI(title="RepoLens AI", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="RepoLens AI", version="0.5.0", lifespan=lifespan)
+
+
+def _build_http_error(status_code: int, error) -> HTTPException:
+    """Convert an application error into a structured HTTP exception."""
+    return HTTPException(
+        status_code=status_code,
+        detail={
+            "error_code": error.error_code,
+            "error_message": str(error),
+            "diagnostics": error.diagnostics,
+        },
+    )
 
 
 @app.get("/")
@@ -46,8 +59,10 @@ def ingest_repo(request: IngestRequest) -> IngestResponse:
     """Ingest a repository and return indexing summary data."""
     try:
         result = ingest_repository(request.repo_url)
+    except IngestionLimitError as exc:
+        raise _build_http_error(422, exc) from exc
     except RepositoryCloneError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise _build_http_error(503, exc) from exc
 
     return IngestResponse(
         repo_path=result["repo_path"],
@@ -56,6 +71,7 @@ def ingest_repo(request: IngestRequest) -> IngestResponse:
         document_count=result["document_count"],
         chunk_count=result["chunk_count"],
         indexed_count=result["indexed_count"],
+        ingestion_diagnostics=result.get("ingestion_diagnostics"),
     )
 
 
@@ -74,12 +90,14 @@ def ask_question(request: QuestionRequest) -> QuestionResponse:
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except AnswerServiceUnavailableError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return QuestionResponse(
         answer=result["answer"],
         citations=result["citations"],
         confidence=result["confidence"],
+        outcome=result["outcome"],
+        error_code=result.get("error_code"),
+        error_message=result.get("error_message"),
         trace_summary=result.get("trace_summary"),
+        retrieval_diagnostics=result.get("retrieval_diagnostics"),
     )
