@@ -89,7 +89,7 @@ def test_retrieve_chunks_fetches_extra_candidates_and_reranks(monkeypatch):
 
     results = retriever.retrieve_chunks("How do I run this project?", n_results=2)
 
-    assert collection.calls == [{"query_texts": ["How do I run this project?"], "n_results": 18}]
+    assert collection.calls == [{"query_texts": ["How do I run this project?"], "n_results": 60}]
     assert len(results) == 2
     assert results[0]["metadata"]["path"] == "README.md"
     assert results[0]["matched_intents"] == ["setup"]
@@ -109,7 +109,7 @@ def test_retrieve_chunks_can_return_diagnostics(monkeypatch):
     assert len(results) == 2
     assert diagnostics["matched_intents"] == ["setup"]
     assert diagnostics["query_versions"] == []
-    assert diagnostics["fetch_count"] == 18
+    assert diagnostics["fetch_count"] == 60
     assert diagnostics["raw_result_count"] == 2
     assert diagnostics["top_candidates"][0]["path"] == "README.md"
     assert "is_readme" in diagnostics["top_candidates"][0]["flags"]
@@ -245,6 +245,26 @@ def test_retrieve_chunks_uses_wider_fetch_window_for_release_mode(monkeypatch):
     assert collection.calls == [
         {
             "query_texts": ["What deployment artifacts are available for this project?"],
-            "n_results": 60,
+            "n_results": 120,
         }
     ]
+
+
+def test_retrieve_chunks_detects_comparison_and_regression_intents(monkeypatch):
+    """New Milestone 6 compare and regression questions should route intentionally."""
+    collection = FakeCollection()
+    monkeypatch.setattr(retriever, "get_vector_collection", lambda name: collection)
+
+    _, compare_diagnostics = retriever.retrieve_chunks(
+        "Where is the multi-repo comparison logic implemented?",
+        n_results=2,
+        return_diagnostics=True,
+    )
+    _, regression_diagnostics = retriever.retrieve_chunks(
+        "How are eval regressions aggregated across saved versions?",
+        n_results=2,
+        return_diagnostics=True,
+    )
+
+    assert "comparison" in compare_diagnostics["matched_intents"]
+    assert "regression" in regression_diagnostics["matched_intents"]

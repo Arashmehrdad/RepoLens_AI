@@ -32,3 +32,20 @@ def test_format_citations_uses_single_line_format_and_limits_results():
         "README.md:12-28",
         "app/api/main.py:5-31",
     ]
+
+
+def test_format_citations_prefers_unique_paths_before_extra_spans():
+    """Citation selection should diversify files before adding duplicate-path spans."""
+    retrieved_chunks = [
+        {"metadata": {"path": "README.md", "start_line": 12, "end_line": 28}},
+        {"metadata": {"path": "README.md", "start_line": 40, "end_line": 60}},
+        {"metadata": {"path": "app/api/main.py", "start_line": 5, "end_line": 31}},
+    ]
+
+    citations = format_citations(retrieved_chunks)
+
+    assert citations == [
+        "README.md:12-28",
+        "app/api/main.py:5-31",
+        "README.md:40-60",
+    ]

@@ -31,6 +31,10 @@ class IngestionLimitError(RepoLensError):
     """Raised when repository ingestion exceeds configured limits."""
 
 
+class RepoStateError(RepoLensError):
+    """Raised when a repo state cannot be resolved or loaded safely."""
+
+
 class VectorStoreError(RepoLensError):
     """Raised when the vector store cannot be accessed safely."""
 
@@ -45,3 +49,15 @@ class LLMDependencyError(RepoLensError):
 
 class LLMInvocationError(RepoLensError):
     """Raised when an LLM request fails during invocation."""
+
+
+class ComparisonError(RepoLensError):
+    """Raised when repo-to-repo comparison cannot complete safely."""
+
+
+class RegressionError(RepoLensError):
+    """Raised when eval regression data cannot be loaded safely."""
+
+
+class ReportGenerationError(RepoLensError):
+    """Raised when an exportable review report cannot be generated."""

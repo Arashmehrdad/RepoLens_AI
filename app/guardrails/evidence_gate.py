@@ -53,6 +53,17 @@ def has_enough_evidence(
     if len(citation_ready_chunks) < min_chunks:
         return False
 
+    matched_intents = {
+        intent
+        for item in retrieved_chunks
+        for intent in item.get("matched_intents", [])
+    }
+    if "training" in matched_intents and not any(
+        item.get("metadata", {}).get("is_training")
+        for item in citation_ready_chunks
+    ):
+        return False
+
     unique_spans = {
         (
             item["metadata"]["path"],

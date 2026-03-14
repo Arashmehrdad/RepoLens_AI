@@ -35,6 +35,19 @@ class FakeClient:
         self.calls.append({"delete_collection": name})
 
 
+class NotFoundClient(FakeClient):
+    """Client stub that raises a collection-not-found style error on delete."""
+
+    def delete_collection(self, name: str):
+        """Raise the same class name Chroma uses for missing collections."""
+        del name
+
+        class NotFoundError(Exception):
+            """Collection-not-found error with the same class name as Chroma."""
+
+        raise NotFoundError("Collection does not exist")
+
+
 def test_get_embedding_function_uses_repo_local_cache(monkeypatch, tmp_path):
     """Embedding downloads should be redirected into the configured repo cache."""
     monkeypatch.setattr(vector_store, "EMBEDDING_CACHE_DIR", tmp_path / "model-cache")
@@ -89,3 +102,16 @@ def test_reset_vector_collection_uses_configured_client(monkeypatch, tmp_path):
     vector_store.reset_vector_collection("demo")
 
     assert captured["client"].calls == [{"delete_collection": "demo"}]
+
+
+def test_reset_vector_collection_ignores_missing_collections(monkeypatch, tmp_path):
+    """Resetting a new ref-specific collection should ignore not-found errors."""
+
+    def build_client(path: str):
+        del path
+        return NotFoundClient(path="unused")
+
+    monkeypatch.setattr(vector_store, "VECTOR_STORE_DIR", tmp_path / "vector-store")
+    monkeypatch.setattr(vector_store.chromadb, "PersistentClient", build_client)
+
+    vector_store.reset_vector_collection("demo")

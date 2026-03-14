@@ -1,6 +1,7 @@
 """Repository document loading helpers."""
 
 from collections import Counter
+import hashlib
 from pathlib import Path
 
 
@@ -65,7 +66,7 @@ PACKAGE_CONFIG_FILENAMES = {
 }
 TUTORIAL_TERMS = {"tutorial", "guide", "getting-started", "quickstart", "walkthrough"}
 CONFIG_SUFFIXES = {".yml", ".yaml", ".json", ".toml", ".ini", ".cfg", ".env", ".txt"}
-TRAINING_TOKENS = ["train", "trainer", "fit", "model", "pipeline"]
+TRAINING_TOKENS = ["train", "trainer", "fit", "model"]
 DEPENDENCY_FILENAMES = {
     "requirements.txt",
     "pyproject.toml",
@@ -239,6 +240,9 @@ def load_documents_with_stats(file_paths: list[Path], repo_root: Path) -> dict:
         relative_path = file_path.relative_to(repo_root)
         metadata = build_path_metadata(relative_path)
         metadata["byte_size"] = byte_size
+        metadata["content_hash"] = hashlib.sha256(
+            content.encode("utf-8")
+        ).hexdigest()
 
         documents.append(
             {

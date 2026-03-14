@@ -33,9 +33,11 @@ def select_citation_chunks(
     retrieved_chunks: list[dict],
     max_citations: int = MAX_CITATIONS,
 ) -> list[dict]:
-    """Select up to the best unique chunks that have valid citation spans."""
+    """Select up to the best chunks while preferring path diversity first."""
     selected_chunks = []
     seen_citations = set()
+    seen_paths = set()
+    deferred_chunks = []
 
     for item in retrieved_chunks:
         metadata = item.get("metadata", {})
@@ -43,6 +45,22 @@ def select_citation_chunks(
             continue
 
         citation = format_line_citation(metadata)
+        path = metadata["path"]
+        if citation in seen_citations:
+            continue
+
+        if path in seen_paths:
+            deferred_chunks.append((citation, item))
+            continue
+
+        seen_citations.add(citation)
+        seen_paths.add(path)
+        selected_chunks.append(item)
+
+        if len(selected_chunks) >= max_citations:
+            return selected_chunks
+
+    for citation, item in deferred_chunks:
         if citation in seen_citations:
             continue
 

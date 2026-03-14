@@ -1,20 +1,25 @@
 """Vector indexing helpers."""
 
-from app.retrieval.vector_store import get_vector_collection, reset_vector_collection
+from app.retrieval.vector_store import (
+    delete_chunk_ids,
+    get_vector_collection,
+    reset_vector_collection,
+)
 
 
-def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
-    """Upsert chunk content plus rich metadata into the vector store."""
-    reset_vector_collection(collection_name)
-    collection = get_vector_collection(collection_name)
+def build_chunk_id(path: str, chunk_index: int) -> str:
+    """Build the stable vector-store ID for one chunk."""
+    return f"{path}::chunk_{chunk_index}"
 
+
+def _build_upsert_payload(chunks: list[dict]) -> dict:
+    """Convert chunk records into Chroma upsert payloads."""
     ids = []
     documents = []
     metadatas = []
 
     for chunk in chunks:
-        chunk_id = f"{chunk['path']}::chunk_{chunk['chunk_index']}"
-        ids.append(chunk_id)
+        ids.append(build_chunk_id(chunk["path"], chunk["chunk_index"]))
         documents.append(chunk["content"])
         metadatas.append(
             {
@@ -54,7 +59,48 @@ def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> in
             }
         )
 
-    if ids:
-        collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
+    return {
+        "ids": ids,
+        "documents": documents,
+        "metadatas": metadatas,
+    }
 
-    return len(ids)
+
+def upsert_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
+    """Upsert chunk content plus rich metadata into the vector store."""
+    payload = _build_upsert_payload(chunks)
+    if not payload["ids"]:
+        return 0
+
+    collection = get_vector_collection(collection_name)
+    collection.upsert(
+        ids=payload["ids"],
+        documents=payload["documents"],
+        metadatas=payload["metadatas"],
+    )
+    return len(payload["ids"])
+
+
+def replace_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
+    """Replace a collection with a new full set of chunk records."""
+    reset_vector_collection(collection_name)
+    return upsert_chunks(chunks, collection_name=collection_name)
+
+
+def index_chunks(chunks: list[dict], collection_name: str = "repo_chunks") -> int:
+    """Replace the collection with a fresh chunk set for compatibility callers."""
+    return replace_chunks(chunks, collection_name=collection_name)
+
+
+def remove_chunks(chunk_ids: list[str], collection_name: str = "repo_chunks") -> int:
+    """Delete chunk IDs from a collection and return the count removed."""
+    if not chunk_ids:
+        return 0
+
+    delete_chunk_ids(collection_name, chunk_ids)
+    return len(chunk_ids)
+
+
+def count_chunks_for_manifest(manifest_files: dict) -> int:
+    """Return the total chunk count described by manifest file entries."""
+    return sum(len(entry.get("chunk_ids", [])) for entry in manifest_files.values())

@@ -1,5 +1,7 @@
 """Query retrieval with intent-aware reranking."""
 
+# pylint: disable=duplicate-code
+
 import re
 
 from app.core.errors import RetrievalError, VectorStoreError
@@ -229,6 +231,9 @@ QUERY_INTENT_RULES = {
             "retrieval": 1.0,
             "generation": 1.0,
             "ingestion": 1.0,
+            "comparison": 1.5,
+            "evals": 1.3,
+            "regressions": 1.3,
         },
         "section_terms": {
             "architecture": 2.0,
@@ -308,6 +313,68 @@ QUERY_INTENT_RULES = {
             "test": 1.4,
         },
     },
+    "comparison": {
+        "keywords": {
+            "compare",
+            "comparison",
+            "diff",
+            "difference",
+            "state",
+            "states",
+            "between versions",
+            "between refs",
+        },
+        "boosts": {
+            "is_docs_update": 0.8,
+            "is_readme": 0.8,
+        },
+        "path_terms": {
+            "comparison": 3.0,
+            "compare": 2.8,
+            "diff": 2.2,
+            "manifest": 1.8,
+            "state": 1.5,
+            "report": 1.4,
+        },
+        "section_terms": {
+            "compare": 1.6,
+            "comparison": 1.8,
+            "release diff": 2.0,
+        },
+        "symbol_terms": {},
+    },
+    "regression": {
+        "keywords": {
+            "regression",
+            "regressions",
+            "eval",
+            "evals",
+            "evaluation",
+            "dashboard",
+            "trend",
+            "trends",
+            "historical",
+            "metrics",
+        },
+        "boosts": {
+            "is_docs_update": 0.8,
+            "is_readme": 0.6,
+        },
+        "path_terms": {
+            "evals": 3.0,
+            "eval": 2.4,
+            "regression": 3.2,
+            "regressions": 3.2,
+            "report": 1.4,
+            "results": 1.2,
+        },
+        "section_terms": {
+            "evaluation": 1.8,
+            "regression": 2.0,
+            "metrics": 1.2,
+        },
+        "symbol_terms": {},
+    },
     "release": {
         "keywords": {
             "release",
@@ -376,6 +443,14 @@ MODE_DEFAULT_INTENTS = {
 }
 
 
+def _query_matches_keyword(query_lower: str, keyword: str) -> bool:
+    """Return True when a query matches one configured intent keyword."""
+    if " " in keyword:
+        return keyword in query_lower
+
+    return bool(re.search(rf"\b{re.escape(keyword)}\b", query_lower))
+
+
 def classify_query_intents(query: str, mode: str | None = None) -> set[str]:
     """Infer high-level repository intents from the user query."""
     query_lower = query.lower()
@@ -385,7 +460,7 @@ def classify_query_intents(query: str, mode: str | None = None) -> set[str]:
         intents.update(MODE_DEFAULT_INTENTS.get(mode.lower(), set()))
 
     for intent_name, rule in QUERY_INTENT_RULES.items():
-        if any(keyword in query_lower for keyword in rule["keywords"]):
+        if any(_query_matches_keyword(query_lower, keyword) for keyword in rule["keywords"]):
             intents.add(intent_name)
 
     if not intents:
@@ -626,8 +701,10 @@ def _build_retrieved_chunks(
 
 def _compute_fetch_count(n_results: int, intents: set[str]) -> int:
     """Return a candidate fetch window sized for the detected question type."""
-    fetch_count = max(n_results * 6, 18)
+    fetch_count = max(n_results * 8, 24)
     if {"deployment", "release"} & intents:
+        return max(fetch_count, 120)
+    if {"setup", "architecture", "api", "debug", "comparison", "regression"} & intents:
         return max(fetch_count, 60)
     return fetch_count
 

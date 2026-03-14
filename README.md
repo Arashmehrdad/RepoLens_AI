@@ -1,52 +1,84 @@
 # RepoLens AI
 
-RepoLens AI is a repository question-answering assistant for onboarding, debugging,
-release reviews, and deployment walkthroughs. It clones a repository, filters and
-indexes the useful files, retrieves grounded evidence with metadata-aware reranking,
-answers with line-aware citations, and refuses when the evidence is weak.
+RepoLens AI is a grounded engineering assistant for repository Q&A, release review,
+repo-state comparison, and evaluation regression tracking.
 
-`v0.5.0 - Evaluation and Production Robustness` turns the project into a stronger
-portfolio-ready demo with versioned eval reports, clearer failure handling, more
-predictable ingestion on noisy repositories, and more intentional release-mode
-retrieval.
+It ingests repository states, filters noisy files, indexes grounded evidence in Chroma,
+retrieves and reranks chunks with line-aware citations, compares two repo states with
+deterministic evidence-backed summaries, and exposes traces plus eval regressions for
+debugging and release reviews.
 
-## Overview
+`v0.6.0 - Multi-Repo Intelligence` extends the project from single-repo Q&A into a
+stronger engineering workflow for:
 
-RepoLens AI helps developers answer questions such as:
+- onboarding and setup questions
+- debugging and architecture navigation
+- release review and deployment impact analysis
+- comparing two branches, tags, or repo refs
+- tracking answer quality regressions across saved eval runs
+- exporting review reports for handoff or release notes
 
-- How do I run this project locally?
-- Which files control deployment?
-- What changed in this release?
-- Where should I look to debug API behavior?
+## Core Capabilities
 
-The assistant is grounded by repository evidence, not generic guessing. Every
-non-refusal answer is expected to carry 1-3 line-aware citations such as
-`README.md:94-145` or `app/api/main.py:1-45`.
+- Grounded repo Q&A with line-aware citations such as `README.md:107-150`
+- Structured refusal and fallback behavior when evidence or LLM generation is weak
+- Repo-state ingestion with ref-aware collection naming and incremental re-ingestion
+- Multi-repo compare mode for changed, added, and removed file analysis
+- Release diff mode that prioritizes changelogs, release notes, workflows, deployment files,
+  version files, and package metadata
+- Structured JSONL tracing for `/ask`
+- Versioned eval reports plus a regression dashboard over historical runs
+- Exportable compare review reports in both Markdown and JSON
+- FastAPI API, Streamlit UI, and Docker-based deployment scaffolding
 
-## What v0.5.0 Adds
+## v0.6.0 Highlights
 
-- richer, versioned evaluation outputs under `data/evals/results/<version>/<timestamp>/`
-- safer ingestion defaults for larger or noisier repositories
-- structured application errors for clone, ingestion, retrieval, vector store, and LLM failures
-- fallback extractive answers when retrieval succeeds but LLM generation is unavailable
-- stronger release-mode evidence selection for changelogs, release notes, workflows,
-  version files, package metadata, and deployment/config changes
-- clearer API and UI diagnostics, including `outcome`, `error_code`, `error_message`,
-  `trace_summary`, and retrieval diagnostics
-- demo-ready docs and asset paths for screenshots or short recordings
+- repo-state abstraction with deterministic `state_id`, `collection_name`, and `ref`
+- compare and release-diff endpoints backed by grounded manifest and vector evidence
+- incremental re-ingestion using saved manifests, file hashes, and stale chunk removal
+- regression aggregation over `data/evals/results/<version>/<timestamp>/`
+- review report export under `data/reports/`
+- clearer diagnostics for noisy files, weak citations, compare evidence coverage, and
+  incremental ingestion behavior
+- Streamlit tabs for repository Q&A, state comparison, and eval regressions
 
 ## Architecture
 
-1. `/ingest` clones the target repository into `data/repos/`.
-2. File discovery filters out generated, binary, vendored, oversized, and noisy files.
-3. Documents are loaded with path metadata such as `is_release_note`,
-   `is_version_file`, `is_deployment_file`, `is_test_file`, and `is_tutorial_doc`.
-4. Chunking preserves overlap plus line spans, section headings, and Python symbols.
-5. Chunks are indexed in Chroma with retrieval metadata.
-6. `/ask` retrieves, reranks, cleans, validates evidence, and either answers,
-   falls back to extractive evidence, refuses, or returns a safe error payload.
+### Q&A flow
+
+1. `/ingest` resolves a repo URL or local path into a repo state.
+2. File discovery filters binary, generated, vendored, oversized, and noisy files.
+3. Document loading attaches metadata such as `is_release_note`, `is_workflow`,
+   `is_package_config`, `is_deployment_file`, `is_test_file`, and `is_tutorial_doc`.
+4. Chunking preserves overlap, line spans, Markdown headings, and Python symbols.
+5. Chunks are indexed in a ref-aware Chroma collection.
+6. `/ask` retrieves, reranks, cleans, validates evidence, and either:
+   - answers
+   - falls back to extractive evidence
+   - refuses
+   - or returns a structured error payload
 7. Structured JSONL traces are written to `logs/traces.jsonl`.
-8. Versioned eval results are written to `data/evals/results/`.
+
+### Compare flow
+
+1. Two repo states are ingested independently.
+2. Saved manifests are diffed by file path and content hash.
+3. High-value files are prioritized using metadata and query intent.
+4. Grounded evidence is loaded from both collections for the top changed files.
+5. RepoLens returns:
+   - changed / added / removed files
+   - setup / deployment / CI/CD / package / API-runtime impacts
+   - state-specific citations
+   - compare diagnostics
+6. `/review-report` exports the result as Markdown and JSON.
+
+### Regression flow
+
+1. `python -m app.evals.run_evals --version <version>` saves one eval run.
+2. Saved results land under `data/evals/results/<version>/<timestamp>/`.
+3. `/eval-regressions` aggregates historical runs into per-version summaries and metric series.
+4. The Streamlit dashboard displays pass-rate, relevance, citation correctness, refusal
+   correctness, and latency trends.
 
 ## Project Layout
 
@@ -54,15 +86,19 @@ non-refusal answer is expected to carry 1-3 line-aware citations such as
 RepoLens_AI/
   app/
     api/
+    comparison/
     core/
     evals/
     generation/
     guardrails/
     ingestion/
+    reports/
     retrieval/
     ui/
   data/
-    evals/
+    evals/results/
+    manifests/
+    reports/
     repos/
     vector_store/
   docs/
@@ -73,9 +109,7 @@ RepoLens_AI/
   Dockerfile.api
   Dockerfile.ui
   docker-compose.yml
-  pytest.ini
   README.md
-  requirements.txt
 ```
 
 ## Local Setup
@@ -83,8 +117,8 @@ RepoLens_AI/
 Requirements:
 
 - Python 3.11
-- Git on `PATH` for repository cloning
-- A valid `GEMINI_API_KEY` for LLM-backed answers
+- Git on `PATH` for remote cloning and non-default ref checkout
+- A valid `GEMINI_API_KEY` if you want live model-written answers
 
 Install dependencies:
 
@@ -92,13 +126,17 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Create your local environment file:
+Create a local environment file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Set `GEMINI_API_KEY` in `.env`.
+Set at least:
+
+```env
+GEMINI_API_KEY=your_key_here
+```
 
 Useful environment variables:
 
@@ -126,7 +164,7 @@ Start the UI in another terminal:
 streamlit run app/ui/home.py
 ```
 
-Useful URLs:
+Useful local URLs:
 
 - API docs: `http://127.0.0.1:8000/docs`
 - API health: `http://127.0.0.1:8000/health`
@@ -134,7 +172,7 @@ Useful URLs:
 
 ## Deployment
 
-The repo is prepared for a simple two-service deployment:
+RepoLens AI is prepared for a practical two-service deployment:
 
 - `Dockerfile.api` for FastAPI
 - `Dockerfile.ui` for Streamlit
@@ -153,37 +191,41 @@ Public deployment checklist:
 2. Deploy the UI service from `Dockerfile.ui`.
 3. Set `REPOLENS_API_BASE_URL` on the UI service to the public API URL.
 4. Set `GEMINI_API_KEY` on the API service.
-5. Mount or persist `data/` and `logs/` if you want indexes, eval outputs, and traces
+5. Persist `data/` and `logs/` if you want indexes, manifests, eval runs, reports, and traces
    to survive restarts.
 6. Allow one initial embedding-model download or pre-warm
    `REPOLENS_EMBEDDING_CACHE_DIR`.
 
-## API Behavior
+## API Surface
 
-The API preserves the main answer contract:
+Primary endpoints:
+
+- `POST /ingest`
+- `POST /ask`
+- `POST /compare`
+- `POST /release-diff`
+- `GET /eval-regressions`
+- `POST /review-report`
+
+The existing answer contract is preserved:
 
 - `answer`
 - `citations`
 - `confidence`
 
-It now also returns structured fields that make failures easier to diagnose:
+RepoLens also returns structured fields such as:
 
 - `outcome`
 - `error_code`
 - `error_message`
 - `trace_summary`
 - `retrieval_diagnostics`
-
-Possible `outcome` values:
-
-- `answered`
-- `fallback_answered`
-- `refused`
-- `error`
+- compare diagnostics and state metadata
+- incremental ingestion stats
 
 ## Observability
 
-Every `/ask` request appends one JSONL record to `logs/traces.jsonl`.
+Every `/ask` request appends one JSONL trace record to `logs/traces.jsonl`.
 
 Trace fields include:
 
@@ -205,53 +247,76 @@ Trace fields include:
 - `error_code`
 - `error_message`
 
-The UI renders the compact `trace_summary` and exposes retrieval diagnostics in an
-expander for debugging demos.
+The UI renders a compact trace summary and expands retrieval diagnostics when needed.
 
-## Retrieval Modes
+## Retrieval and Compare Modes
 
 ### Onboarding mode
 
-Optimized for setup, architecture, configuration, and general repository navigation.
+Optimized for setup, architecture, configuration, and general repo navigation.
 
 ### Debug mode
 
-Allows test evidence when the query actually signals debugging or testing, and boosts
-entrypoints, tracing paths, and relevant runtime/config files.
+Allows test evidence when the query truly signals debugging or testing.
 
 ### Release mode
 
-Release mode is intentionally more evidence-driven in v0.5.0. It boosts:
+Prioritizes changelogs, release notes, version files, workflows, deployment files,
+package metadata, and release-related README or docs updates.
 
-- changelogs and release notes
-- version files and package metadata
-- release and CI workflows
-- deployment artifacts such as Docker, compose, and hosting config
-- documentation and README sections that describe version, deployment, or release changes
+### Compare mode
 
-This keeps release answers more focused and less noisy than generic prompt shaping alone.
+Diffs two repo states, prioritizes meaningful file classes, and returns grounded impact
+summaries across:
 
-## Evaluation
+- setup
+- deployment
+- CI/CD
+- package/versioning
+- API/runtime behavior
 
-Eval cases live in `app/evals/eval_dataset.py` and include category, mode, expected
-citations, refusal expectations, and confidence thresholds.
+### Release diff mode
+
+Adds stronger release-specific weighting on top of compare mode so release-review questions
+focus on:
+
+- `CHANGELOG` and release notes
+- workflow and CI automation
+- package and version metadata
+- Docker, compose, and deployment config
+- README/setup changes that affect the release experience
+
+## Evaluation and Regressions
+
+Eval cases live in `app/evals/eval_dataset.py` and now cover:
+
+- setup
+- architecture
+- API behavior
+- debug/test routing
+- deployment
+- release-mode retrieval
+- compare-related implementation discovery
+- regression aggregation discovery
+- clean refusals
 
 Run the eval suite:
 
 ```powershell
-python -m app.evals.run_evals --version v0.5.0
+python -m app.evals.run_evals --version v0.6.0
 ```
 
-Results are saved to:
+Saved output layout:
 
 ```text
-data/evals/results/v0.5.0/<timestamp>/
+data/evals/results/v0.6.0/<timestamp>/
   summary.json
   cases.json
   report.md
 ```
 
-This makes answer quality comparable across releases instead of overwriting a single file.
+The regression dashboard aggregates historical runs from those directories without assuming
+perfect backward compatibility.
 
 ## End-to-End Example
 
@@ -263,9 +328,9 @@ How do I run this project locally?
 
 Retrieved evidence:
 
-- `README.md:107-150` explains local setup and run commands.
-- `app/api/main.py:23-54` shows the API startup lifecycle and health route.
-- `README.md:1-26` summarizes the product flow and grounded-answer behavior.
+- `README.md:107-150` covers local setup and run commands
+- `app/api/main.py:23-54` shows API startup and health behavior
+- `README.md:1-26` summarizes the product flow and grounded-answer contract
 
 Final answer:
 
@@ -286,6 +351,7 @@ Trace summary:
 ```json
 {
   "request_id": "example-request-id",
+  "collection_name": "repo_repolens_ai",
   "outcome": "answered",
   "confidence": "high",
   "request_latency_ms": 182.4,
@@ -302,29 +368,41 @@ Trace summary:
 }
 ```
 
+## Compare Example
+
+Example compare question:
+
+```text
+What changed from v0.5.0 to v0.6.0, and what affects deployment?
+```
+
+Expected grounded output shape:
+
+- changed / added / removed files
+- deployment and CI/CD impact lists
+- citations from both states such as:
+  - `A: README.md:10-24`
+  - `B: .github/workflows/release.yml:2-20`
+- optional review report export under `data/reports/`
+
 ## Demo Assets
 
-The repo now includes real demo/documentation paths:
+Repo-based demo references:
 
-- workflow guide: [`docs/demo/release-workflow.md`](docs/demo/release-workflow.md)
-- asset manifest: [`docs/assets/asset-manifest.md`](docs/assets/asset-manifest.md)
+- workflow guide: `docs/demo/release-workflow.md`
+- asset manifest: `docs/assets/asset-manifest.md`
 
-Expected screenshot or GIF paths:
+Expected asset paths:
 
 - `docs/assets/repolens-ui-home.png`
+- `docs/assets/repolens-compare-mode.png`
 - `docs/assets/repolens-trace-summary.png`
+- `docs/assets/repolens-regression-dashboard.png`
 - `docs/assets/repolens-release-mode.gif`
+- `docs/assets/repolens-review-report.png`
 
-These files are intentionally not faked in the repository. The manifest documents what
-each capture should show.
-
-## Production Robustness Notes
-
-- Repository cloning degrades cleanly when GitPython or the `git` executable is missing.
-- Ingestion fails with structured limit errors instead of indexing an unpredictable subset.
-- Retrieval failures return a safe low-confidence payload instead of crashing the request.
-- LLM dependency or invocation failures fall back to extractive evidence when possible.
-- Weak or uncitable evidence still triggers a refusal.
+The repo intentionally does not include fake screenshots. The asset manifest documents what
+real captures should show.
 
 ## Validation
 
@@ -333,30 +411,32 @@ Typical local validation commands:
 ```powershell
 python -m pytest -q
 python -m pylint app
-python -m app.evals.run_evals --version v0.5.0
+python -m app.evals.run_evals --version v0.6.0
 python -c "import app.api.main"
 ```
 
-## v0.5.0 Release Summary
+## v0.6.0 Release Summary
 
-`v0.5.0 - Evaluation and Production Robustness`
+`v0.6.0 - Multi-Repo Intelligence`
 
 Highlights:
 
-- versioned evaluation outputs and release-friendly markdown reports
-- safer ingestion and file filtering for large or noisy repositories
-- stronger release-mode evidence handling
-- structured API and UI failure diagnostics
-- fallback extractive answers when LLM generation is unavailable
-- demo-ready docs and asset paths
+- multi-repo compare and release-diff support across repo URLs and refs
+- manifest-backed incremental re-ingestion with stale chunk cleanup
+- regression dashboard aggregation across historical eval outputs
+- exportable review reports in Markdown and JSON
+- stronger compare and release diagnostics in the API and UI
+- preserved grounded Q&A, line-aware citations, structured failures, and fallback behavior
 
 ## Current Limits
 
-- RepoLens AI still depends on repository text quality and chunked evidence coverage.
-- Release intelligence is metadata-aware, but not git-history aware.
-- The strongest section and symbol extraction is currently for Markdown and Python files.
-- Public deployment still requires hosting credentials and environment-variable setup
-  outside this repository.
+- Compare summaries are deterministic and grounded, but not git-history aware beyond the
+  ingested repo states and retrieved evidence.
+- The strongest section and symbol extraction is still for Markdown and Python files.
+- Compare-mode tracing is more compact than `/ask` tracing; the main detailed trace stream
+  still centers on Q&A requests.
+- Public deployment still requires hosting credentials and environment-variable setup outside
+  this repository.
 
 ## Author
 

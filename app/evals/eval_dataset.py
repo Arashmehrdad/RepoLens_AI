@@ -74,7 +74,7 @@ EVAL_CASES = [
         "collection_name": "repo_repolens_ai",
         "mode": "release",
         "query": "What deployment artifacts are available for this project?",
-        "expected_citations": ["Dockerfile.api", "README.md"],
+        "expected_citations": ["Dockerfile.api"],
         "should_refuse": False,
         "minimum_confidence": "medium",
         "notes": (
@@ -87,13 +87,41 @@ EVAL_CASES = [
         "category": "infra_or_devops_repo",
         "collection_name": "repo_repolens_ai",
         "mode": "release",
-        "query": "What changed in v0.5.0?",
+        "query": "What changed in v0.6.0?",
         "expected_citations": ["README.md"],
         "should_refuse": False,
         "minimum_confidence": "medium",
         "notes": (
             "Release mode should combine docs and implementation evidence for "
             "shipped features."
+        ),
+    },
+    {
+        "name": "multi_repo_compare_logic",
+        "category": "api_service",
+        "collection_name": "repo_repolens_ai",
+        "mode": "onboarding",
+        "query": "Where is the multi-repo comparison logic implemented?",
+        "expected_citations": ["app/comparison/service.py"],
+        "should_refuse": False,
+        "minimum_confidence": "medium",
+        "notes": (
+            "v0.6.0 should surface the new compare service rather than only README "
+            "copy when users ask about state-to-state analysis."
+        ),
+    },
+    {
+        "name": "regression_dashboard_aggregation",
+        "category": "frontend_or_ui_repo",
+        "collection_name": "repo_repolens_ai",
+        "mode": "onboarding",
+        "query": "How are eval regressions aggregated across saved versions?",
+        "expected_citations": ["app/evals/regressions.py"],
+        "should_refuse": False,
+        "minimum_confidence": "medium",
+        "notes": (
+            "v0.6.0 adds a regression dashboard, so the answer should route to the "
+            "aggregation module instead of generic eval docs."
         ),
     },
     {

@@ -1,16 +1,17 @@
 # RepoLens AI Demo Workflow
 
-This document describes a polished, honest demo flow for RepoLens AI `v0.5.0`.
+This document describes a polished, honest demo flow for RepoLens AI `v0.6.0`.
 Use it when recording a GIF, taking screenshots, or preparing a portfolio walkthrough.
 
 ## Goal
 
 Show that RepoLens AI can:
 
-- ingest a real repository
-- answer with line-aware citations
-- expose trace and retrieval diagnostics
-- handle release-oriented questions more precisely than generic repository QA
+- ingest a real repo state
+- answer with grounded line-aware citations
+- compare two repo states with release-focused evidence
+- surface traces, diagnostics, and eval regressions
+- export a review report for handoff or release review
 - fail safely when evidence or dependencies are weak
 
 ## Suggested Demo Sequence
@@ -27,21 +28,30 @@ Suggested asset:
 
 - `docs/assets/repolens-ui-home.png`
 
-### 2. Ingest the repository
+### 2. Ingest one repo state
 
-Use a repository URL such as:
+Use a repo URL or local path such as:
 
 ```text
 https://github.com/Arashmehrdad/RepoLens_AI
 ```
 
+Optionally use a ref such as:
+
+```text
+v0.6.0
+```
+
 Show:
 
 - successful ingest response
-- repo-specific `collection_name`
+- ref-aware `collection_name`
+- `state_id`
+- `manifest_path`
+- `incremental_stats`
 - `ingestion_diagnostics` with selected file counts and skip reasons
 
-### 3. Setup question
+### 3. Grounded Q&A
 
 Ask:
 
@@ -62,12 +72,12 @@ Suggested citations to highlight if they appear:
 - `app/api/main.py:<line range>`
 - `app/ui/home.py:<line range>`
 
-### 4. Release question
+### 4. Release-mode question
 
 Switch to release mode and ask:
 
 ```text
-What changed in v0.5.0?
+What changed in v0.6.0?
 ```
 
 Show:
@@ -80,26 +90,57 @@ Suggested asset:
 
 - `docs/assets/repolens-release-mode.gif`
 
-### 5. Observability view
+### 5. Compare two repo states
 
-Expand retrieval diagnostics and show:
+In the compare tab, compare two refs of the same repo:
 
-- request latency
-- retrieval latency
-- chunks retrieved and chunks after cleaning
-- top paths or top citations
-- matched intents
+```text
+State A ref: v0.5.0
+State B ref: v0.6.0
+Question: What changed from v0.5.0 to v0.6.0, and what affects deployment?
+```
+
+Show:
+
+- changed / added / removed file counts
+- setup, deployment, and CI/CD impact lists
+- cross-state citations such as `A: ...` and `B: ...`
+- compare diagnostics including prioritized files and evidence coverage
 
 Suggested asset:
 
-- `docs/assets/repolens-trace-summary.png`
+- `docs/assets/repolens-compare-mode.png`
 
-### 6. Safe failure behavior
+### 6. Export a review report
+
+After running compare mode, generate a review report and show:
+
+- markdown output
+- JSON output
+- saved paths under `data/reports/`
+
+Suggested asset:
+
+- `docs/assets/repolens-review-report.png`
+
+### 7. Eval regressions
+
+Open the eval regressions tab and show:
+
+- per-version summaries
+- pass rate, relevance, citation correctness, refusal correctness, and latency
+- historical runs loaded from `data/evals/results/`
+
+Suggested asset:
+
+- `docs/assets/repolens-regression-dashboard.png`
+
+### 8. Safe failure behavior
 
 Demonstrate one safe failure mode:
 
 - ask an out-of-scope question and show refusal
-- or temporarily run without `GEMINI_API_KEY` and show fallback extractive answering
+- or temporarily remove `GEMINI_API_KEY` and show fallback extractive answering
 
 Show:
 
@@ -110,7 +151,7 @@ Show:
 
 ## Recording Notes
 
-- Keep the repo URL, query, citations, and trace summary visible in the capture.
+- Keep repo URLs, refs, citations, and diagnostics readable in the capture.
 - Avoid editing files live during the recording unless the demo is specifically about
-  debugging retrieval behavior.
+  debugging retrieval or compare behavior.
 - If the embedding model downloads on first run, pre-warm the cache before recording.

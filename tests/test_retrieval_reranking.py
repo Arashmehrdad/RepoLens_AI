@@ -104,3 +104,10 @@ def test_release_mode_prefers_ci_and_package_release_metadata():
 
     assert compute_rerank_score(workflow_item, intents) > compute_rerank_score(util_item, intents)
     assert compute_rerank_score(package_item, intents) > compute_rerank_score(util_item, intents)
+
+
+def test_intent_detection_uses_word_boundaries_for_short_keywords():
+    """Short keywords such as api should not trigger on unrelated substrings."""
+    intents = classify_query_intents("What is the capital of France?")
+
+    assert "api" not in intents

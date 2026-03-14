@@ -1,5 +1,7 @@
 """Run structured evaluation cases and persist versioned result reports."""
 
+# pylint: disable=duplicate-code
+
 from __future__ import annotations
 
 import argparse
@@ -11,11 +13,12 @@ from pathlib import Path
 from statistics import mean
 from time import perf_counter
 
+from app.core.config import EVAL_RESULTS_DIR
 from app.evals.eval_dataset import EVAL_CASES
 from app.generation.answer_service import REFUSAL_TEXT, answer_question
 
-DEFAULT_EVAL_VERSION = os.getenv("REPOLENS_EVAL_VERSION", "v0.5.0")
-RESULTS_ROOT = Path("data/evals/results")
+DEFAULT_EVAL_VERSION = os.getenv("REPOLENS_EVAL_VERSION", "v0.6.0")
+RESULTS_ROOT = EVAL_RESULTS_DIR
 CONFIDENCE_ORDER = {
     "low": 1,
     "medium": 2,

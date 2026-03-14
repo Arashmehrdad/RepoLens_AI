@@ -50,3 +50,21 @@ def test_has_enough_evidence_allows_strong_reranked_borderline_chunk():
     ]
 
     assert has_enough_evidence(retrieved_chunks) is True
+
+
+def test_has_enough_evidence_rejects_training_queries_without_training_metadata():
+    """Training intent should refuse unsupported repos even when semantic matches are close."""
+    retrieved_chunks = [
+        {
+            "distance": 1.2,
+            "matched_intents": ["training"],
+            "metadata": {
+                "path": "app/ingestion/pipeline.py",
+                "start_line": 1,
+                "end_line": 20,
+                "is_training": False,
+            },
+        }
+    ]
+
+    assert has_enough_evidence(retrieved_chunks) is False

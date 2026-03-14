@@ -52,20 +52,28 @@ def test_load_documents_marks_examples_ci_and_package_config(tmp_path: Path):
     example_path = repo_root / "examples" / "demo.py"
     workflow_path = repo_root / ".github" / "workflows" / "release.yml"
     package_path = repo_root / "pyproject.toml"
+    release_note_path = repo_root / "docs" / "releases" / "v0.6.0.md"
 
     workflow_path.parent.mkdir(parents=True)
     example_path.parent.mkdir(parents=True)
     package_path.parent.mkdir(parents=True, exist_ok=True)
+    release_note_path.parent.mkdir(parents=True, exist_ok=True)
     example_path.write_text("print('demo')", encoding="utf-8")
     workflow_path.write_text("name: release", encoding="utf-8")
     package_path.write_text("[project]\nname='repo'", encoding="utf-8")
+    release_note_path.write_text("# v0.6.0 release notes", encoding="utf-8")
 
-    documents = load_documents([example_path, workflow_path, package_path], repo_root)
+    documents = load_documents(
+        [example_path, workflow_path, package_path, release_note_path],
+        repo_root,
+    )
     documents_by_path = {document["path"]: document for document in documents}
 
     assert documents_by_path["examples/demo.py"]["is_example_file"] is True
     assert documents_by_path[".github/workflows/release.yml"]["is_ci_file"] is True
     assert documents_by_path["pyproject.toml"]["is_package_config"] is True
+    assert documents_by_path["pyproject.toml"]["is_version_file"] is True
+    assert documents_by_path["docs/releases/v0.6.0.md"]["is_release_note"] is True
 
 
 def test_load_documents_does_not_treat_demo_docs_as_ci_workflows(tmp_path: Path):

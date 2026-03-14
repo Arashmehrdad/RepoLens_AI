@@ -13,6 +13,7 @@ CLONE_URL_ERROR = "Could not clone the repository. Check that the URL exists and
 CLONE_AUTH_ERROR = "Could not clone the repository because authentication or permissions failed."
 CLONE_NETWORK_ERROR = "Could not clone the repository because the network request failed."
 CLONE_CLEANUP_ERROR = "Could not prepare the repository directory for cloning."
+CLONE_REF_ERROR = "Could not check out the requested repository ref."
 
 
 def _get_git_dependencies() -> tuple[type, type, type]:
@@ -98,16 +99,39 @@ def _map_clone_command_error(repo_url: str, exc: Exception) -> RepositoryCloneEr
     )
 
 
-def clone_repo(repo_url: str) -> Path:
+def _map_ref_checkout_error(
+    repo_url: str,
+    ref: str,
+    exc: Exception,
+) -> RepositoryCloneError:
+    """Map a ref checkout failure into a safe application error."""
+    return RepositoryCloneError(
+        CLONE_REF_ERROR,
+        error_code="clone_invalid_ref",
+        diagnostics={
+            "repo_url": repo_url,
+            "ref": ref,
+            "git_error": str(exc),
+        },
+    )
+
+
+def clone_repo(
+    repo_url: str,
+    ref: str | None = None,
+    target_dir_name: str | None = None,
+) -> Path:
     """Clone a repository URL into the local repos directory."""
     repo_class, git_command_error, git_command_not_found = _get_git_dependencies()
-    repo_name = repo_url.rstrip("/").split("/")[-1].replace(".git", "")
+    repo_name = target_dir_name or repo_url.rstrip("/").split("/")[-1].replace(".git", "")
     target_path = REPOS_DIR / repo_name
 
     _prepare_target_path(target_path)
 
     try:
-        repo_class.clone_from(repo_url, target_path)
+        repo = repo_class.clone_from(repo_url, target_path)
+        if ref:
+            repo.git.checkout(ref)
     except git_command_not_found as exc:
         raise RepositoryCloneError(
             CLONE_DEPENDENCY_ERROR,
@@ -115,6 +139,17 @@ def clone_repo(repo_url: str) -> Path:
             diagnostics={"repo_url": repo_url, "reason": "git_executable_missing"},
         ) from exc
     except git_command_error as exc:
+        if ref and "checkout" in str(exc).lower():
+            raise _map_ref_checkout_error(repo_url, ref, exc) from exc
         raise _map_clone_command_error(repo_url, exc) from exc
 
     return target_path
+
+
+def get_repo_commit_sha(repo_path: Path) -> str | None:
+    """Return the current commit SHA for a Git repo when available."""
+    try:
+        repo_class, _, _ = _get_git_dependencies()
+        return repo_class(repo_path).head.commit.hexsha
+    except Exception:  # pylint: disable=broad-except
+        return None

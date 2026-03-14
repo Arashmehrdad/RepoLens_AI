@@ -14,6 +14,9 @@ env/
 .vscode/
 .streamlit/secrets.toml
 data/repos/
+data/manifests/
+data/reports/
+data/evals/results/
 data/vector_store/
 data/model_cache/
 logs/
